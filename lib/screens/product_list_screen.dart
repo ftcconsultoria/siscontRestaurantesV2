@@ -267,7 +267,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     final priceColor = precoValor == 0 ? Colors.red : null;
                     final stockColor = estoqueValor < 0 ? Colors.red : null;
                     final fotos = produto['ESTQ_PRODUTO_FOTO'] as List?;
-                    Widget leadingWidget = const Icon(Icons.shopping_cart);
+                    Widget leadingWidget = const SizedBox(
+                      width: 70,
+                      height: 70,
+                      child: Icon(Icons.shopping_cart),
+                    );
                     if (fotos != null && fotos.isNotEmpty) {
                       final url = fotos.first['EPRO_FOTO_URL'];
                       if (url != null && url is String && url.isNotEmpty) {
