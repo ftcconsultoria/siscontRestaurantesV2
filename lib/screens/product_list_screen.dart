@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'dart:typed_data';
 import 'barcode_scanner_screen.dart';
 import '../widgets/product_form_dialog.dart';
 
@@ -92,12 +94,23 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
   }
 
+  Future<Uint8List> _compressImage(Uint8List bytes,
+      {int targetBytes = 100 * 1024}) async {
+    int quality = 100;
+    Uint8List result = bytes;
+    while (result.lengthInBytes > targetBytes && quality > 10) {
+      result = await FlutterImageCompress.compressWithList(bytes, quality: quality);
+      quality -= 10;
+    }
+    return result;
+  }
+
   Future<void> _takePhoto(int productPk) async {
-    final image =
-        await _picker.pickImage(source: ImageSource.camera, imageQuality: 70);
+    final image = await _picker.pickImage(source: ImageSource.camera);
     if (image == null) return;
-    final bytes = await image.readAsBytes();
-    final ext = image.name.split('.').last;
+    var bytes = await image.readAsBytes();
+    bytes = await _compressImage(bytes);
+    final ext = 'jpg';
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$ext';
     final path = '$productPk/$fileName';
     final supabase = Supabase.instance.client;
