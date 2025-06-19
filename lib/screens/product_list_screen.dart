@@ -139,6 +139,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
     await _refreshProducts();
   }
 
+  void _showPhoto(String url) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        child: InteractiveViewer(
+          child: CachedNetworkImage(imageUrl: url),
+        ),
+      ),
+    );
+  }
+
   void _showProductForm([Map<String, dynamic>? product]) {
     showDialog(
       context: context,
@@ -236,14 +247,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     if (fotos != null && fotos.isNotEmpty) {
                       final url = fotos.first['EPRO_FOTO_URL'];
                       if (url != null && url is String && url.isNotEmpty) {
-                        leadingWidget = SizedBox(
-                          width: 70,
-                          height: 70,
-                          child: CachedNetworkImage(
-                            imageUrl: url,
-                            fit: BoxFit.cover,
-                            placeholder: (c, s) => const Center(
-                              child: CircularProgressIndicator(),
+                        leadingWidget = GestureDetector(
+                          onDoubleTap: () => _showPhoto(url),
+                          child: SizedBox(
+                            width: 70,
+                            height: 70,
+                            child: CachedNetworkImage(
+                              imageUrl: url,
+                              fit: BoxFit.cover,
+                              placeholder: (c, s) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             ),
                           ),
                         );
