@@ -24,7 +24,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Future<List<Map<String, dynamic>>> _fetchProducts() async {
     final response = await Supabase.instance.client
         .from('ESTQ_PRODUTO')
-        .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL')
+        .select(
+            'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN')
         .order('EPRO_DESCRICAO');
     final list = List<Map<String, dynamic>>.from(response);
     _products = list;
@@ -60,6 +61,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _showProductForm([Map<String, dynamic>? product]) {
+    final eanController =
+        TextEditingController(text: product?['EPRO_COD_EAN']?.toString() ?? '');
     final descController = TextEditingController(
         text: product?['EPRO_DESCRICAO']?.toString().toUpperCase() ?? '');
     final priceController = TextEditingController(
@@ -74,6 +77,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            TextField(
+              controller: eanController,
+              decoration: const InputDecoration(labelText: 'EAN'),
+              keyboardType: TextInputType.number,
+            ),
             TextField(
               controller: descController,
               decoration: const InputDecoration(labelText: 'Descrição'),
@@ -98,6 +106,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ElevatedButton(
             onPressed: () {
               final data = <String, dynamic>{
+                'EPRO_COD_EAN': eanController.text,
                 'EPRO_DESCRICAO': descController.text.toUpperCase(),
                 'EPRO_VLR_VAREJO':
                     double.tryParse(priceController.text.replaceAll(',', '.')) ??
@@ -205,16 +214,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       title: Text(
                         (produto['EPRO_DESCRICAO'] ?? '').toString().toUpperCase(),
                       ),
-                      subtitle: RichText(
-                        text: TextSpan(
-                          style: DefaultTextStyle.of(context).style,
-                          children: [
-                            const TextSpan(text: 'Preço: '),
-                            TextSpan(text: price, style: TextStyle(color: priceColor)),
-                            const TextSpan(text: ' - Estoque: '),
-                            TextSpan(text: stock, style: TextStyle(color: stockColor)),
-                          ],
-                        ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('EAN: ${produto['EPRO_COD_EAN'] ?? ''}'),
+                          RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: [
+                                const TextSpan(text: 'Preço: '),
+                                TextSpan(text: price, style: TextStyle(color: priceColor)),
+                                const TextSpan(text: ' - Estoque: '),
+                                TextSpan(text: stock, style: TextStyle(color: stockColor)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
