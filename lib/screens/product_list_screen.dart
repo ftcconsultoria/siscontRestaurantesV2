@@ -59,10 +59,37 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<void> _deleteProduct(int id) async {
     await Supabase.instance.client
+        .from('ESTQ_PRODUTO_FOTO')
+        .delete()
+        .eq('EPRO_PK', id);
+    await Supabase.instance.client
         .from('ESTQ_PRODUTO')
         .delete()
         .eq('EPRO_PK', id);
     await _refreshProducts();
+  }
+
+  Future<void> _confirmDeleteProduct(int id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar exclusão'),
+        content: const Text('Tem certeza que deseja excluir este produto?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _deleteProduct(id);
+    }
   }
 
   Future<void> _takePhoto(int productPk) async {
@@ -222,7 +249,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteProduct(produto['EPRO_PK']),
+                            onPressed: () => _confirmDeleteProduct(produto['EPRO_PK']),
                           ),
                         ],
                       ),
