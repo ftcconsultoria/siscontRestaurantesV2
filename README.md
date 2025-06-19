@@ -14,3 +14,10 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Database
+
+The project uses [Supabase](https://supabase.com/) as its backend. The SQL file
+at `sql/create_estq_produto_foto.sql` contains the statement used to create the
+`ESTQ_PRODUTO_FOTO` table which stores product photos. This table references the
+existing `ESTQ_PRODUTO` table and generates `EPRO_FOTO_PK` automatically.
