@@ -1,0 +1,15 @@
+name: erp_mobile
+description: Aplicativo ERP integrado com Supabase
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  supabase_flutter: ^2.9.1
+  sign_in_with_apple: ^7.0.1
+
+flutter:
+  uses-material-design: true
