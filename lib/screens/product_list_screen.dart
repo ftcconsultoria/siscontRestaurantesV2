@@ -58,14 +58,24 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Future<void> _deleteProduct(int id) async {
-    await Supabase.instance.client
+    final supabase = Supabase.instance.client;
+    final photos = await supabase
         .from('ESTQ_PRODUTO_FOTO')
-        .delete()
+        .select('EPRO_FOTO_URL')
         .eq('EPRO_PK', id);
-    await Supabase.instance.client
-        .from('ESTQ_PRODUTO')
-        .delete()
-        .eq('EPRO_PK', id);
+    if (photos is List) {
+      final paths = photos
+          .map((p) => p['EPRO_FOTO_URL'] as String?)
+          .where((url) => url != null)
+          .map((url) => url!.split('/fotos-produtos/').last)
+          .where((path) => path.isNotEmpty)
+          .toList();
+      if (paths.isNotEmpty) {
+        await supabase.storage.from('fotos-produtos').remove(paths);
+      }
+    }
+    await supabase.from('ESTQ_PRODUTO_FOTO').delete().eq('EPRO_PK', id);
+    await supabase.from('ESTQ_PRODUTO').delete().eq('EPRO_PK', id);
     await _refreshProducts();
   }
 
