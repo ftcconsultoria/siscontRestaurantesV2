@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -10,6 +11,9 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   late Future<List<Map<String, dynamic>>> _productsFuture;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchType = 'Nome';
+  List<Map<String, dynamic>> _products = [];
 
   @override
   void initState() {
@@ -22,13 +26,107 @@ class _ProductListScreenState extends State<ProductListScreen> {
         .from('ESTQ_PRODUTO')
         .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL')
         .order('EPRO_DESCRICAO');
-    return List<Map<String, dynamic>>.from(response);
+    final list = List<Map<String, dynamic>>.from(response);
+    _products = list;
+    return list;
+  }
+
+  Future<void> _refreshProducts() async {
+    final list = await _fetchProducts();
+    setState(() {
+      _productsFuture = Future.value(list);
+    });
+  }
+
+  Future<void> _addOrUpdateProduct(Map<String, dynamic> data) async {
+    if (data['EPRO_PK'] == null) {
+      await Supabase.instance.client.from('ESTQ_PRODUTO').insert(data);
+    } else {
+      final id = data['EPRO_PK'];
+      await Supabase.instance.client
+          .from('ESTQ_PRODUTO')
+          .update(data)
+          .eq('EPRO_PK', id);
+    }
+    await _refreshProducts();
+  }
+
+  Future<void> _deleteProduct(int id) async {
+    await Supabase.instance.client
+        .from('ESTQ_PRODUTO')
+        .delete()
+        .eq('EPRO_PK', id);
+    await _refreshProducts();
+  }
+
+  void _showProductForm([Map<String, dynamic>? product]) {
+    final descController =
+        TextEditingController(text: product?['EPRO_DESCRICAO'] ?? '');
+    final priceController = TextEditingController(
+        text: product?['EPRO_VLR_VAREJO']?.toString() ?? '');
+    final stockController = TextEditingController(
+        text: product?['EPRO_ESTQ_ATUAL']?.toString() ?? '');
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(product == null ? 'Novo Produto' : 'Editar Produto'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: descController,
+              decoration: const InputDecoration(labelText: 'Descrição'),
+            ),
+            TextField(
+              controller: priceController,
+              decoration: const InputDecoration(labelText: 'Preço'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: stockController,
+              decoration: const InputDecoration(labelText: 'Estoque'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final data = <String, dynamic>{
+                'EPRO_DESCRICAO': descController.text,
+                'EPRO_VLR_VAREJO':
+                    double.tryParse(priceController.text.replaceAll(',', '.')) ??
+                        0,
+                'EPRO_ESTQ_ATUAL':
+                    double.tryParse(stockController.text.replaceAll(',', '.')) ??
+                        0,
+              };
+              if (product != null) {
+                data['EPRO_PK'] = product['EPRO_PK'];
+              }
+              Navigator.pop(context);
+              _addOrUpdateProduct(data);
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lista de Produtos')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showProductForm(),
+        child: const Icon(Icons.add),
+      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _productsFuture,
         builder: (context, snapshot) {
@@ -38,20 +136,87 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (snapshot.hasError) {
             return Center(child: Text('Erro: ${snapshot.error}'));
           }
-          final produtos = snapshot.data ?? [];
-          if (produtos.isEmpty) {
+          final produtos = _products;
+
+          final query = _searchController.text.toLowerCase();
+          final filtered = produtos.where((p) {
+            if (query.isEmpty) return true;
+            if (_searchType == 'Nome') {
+              return p['EPRO_DESCRICAO']
+                      ?.toString()
+                      .toLowerCase()
+                      .contains(query) ??
+                  false;
+            } else {
+              return p['EPRO_PK']?.toString().contains(query) ?? false;
+            }
+          }).toList();
+
+          if (filtered.isEmpty) {
             return const Center(child: Text('Nenhum produto encontrado.'));
           }
-          return ListView.builder(
-            itemCount: produtos.length,
-            itemBuilder: (context, index) {
-              final produto = produtos[index];
-              return ListTile(
-                title: Text(produto['EPRO_DESCRICAO'] ?? ''),
-                subtitle: Text('Preço: R\$ ${produto['EPRO_VLR_VAREJO'] ?? 0} - Estoque: ${produto['EPRO_ESTQ_ATUAL'] ?? 0}'),
-                leading: const Icon(Icons.shopping_cart),
-              );
-            },
+
+          final priceFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+          final stockFormat = NumberFormat.decimalPattern('pt_BR');
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          labelText: 'Pesquisar',
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    DropdownButton<String>(
+                      value: _searchType,
+                      items: const [
+                        DropdownMenuItem(value: 'Nome', child: Text('Nome')),
+                        DropdownMenuItem(value: 'Código', child: Text('Código')),
+                      ],
+                      onChanged: (v) => setState(() => _searchType = v ?? 'Nome'),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final produto = filtered[index];
+                    final price =
+                        priceFormat.format(produto['EPRO_VLR_VAREJO'] ?? 0);
+                    final stock =
+                        stockFormat.format(produto['EPRO_ESTQ_ATUAL'] ?? 0);
+                    return ListTile(
+                      leading: const Icon(Icons.shopping_cart),
+                      title: Text(produto['EPRO_DESCRICAO'] ?? ''),
+                      subtitle: Text('Preço: $price - Estoque: $stock'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _showProductForm(produto),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _deleteProduct(produto['EPRO_PK']),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
