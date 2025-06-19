@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'product_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -37,7 +38,7 @@ class HomeScreen extends StatelessWidget {
               leading: const Icon(Icons.logout),
               title: const Text('Sair'),
               onTap: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
+                SystemNavigator.pop();
               },
             ),
           ],
