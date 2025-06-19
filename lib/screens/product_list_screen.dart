@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'barcode_scanner_screen.dart';
 import '../widgets/product_form_dialog.dart';
@@ -30,7 +30,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final response = await Supabase.instance.client
         .from('ESTQ_PRODUTO')
         .select(
-            'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, ESTQ_PRODUTO_FOTO(EPRO_FOTO)')
+            'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, ESTQ_PRODUTO_FOTO(EPRO_FOTO_URL)')
         .order('EPRO_DESCRICAO');
     final list = List<Map<String, dynamic>>.from(response);
     _products = list;
@@ -93,13 +93,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Future<void> _takePhoto(int productPk) async {
-    final image = await _picker.pickImage(source: ImageSource.camera);
+    final image =
+        await _picker.pickImage(source: ImageSource.camera, imageQuality: 70);
     if (image == null) return;
     final bytes = await image.readAsBytes();
-    final base64Image = base64Encode(bytes);
-    await Supabase.instance.client.from('ESTQ_PRODUTO_FOTO').insert({
+    final ext = image.name.split('.').last;
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.$ext';
+    final path = '$productPk/$fileName';
+    final supabase = Supabase.instance.client;
+    await supabase.storage.from('fotos-produtos').uploadBinary(path, bytes);
+    final publicUrl =
+        supabase.storage.from('fotos-produtos').getPublicUrl(path);
+    await supabase.from('ESTQ_PRODUTO_FOTO').insert({
       'EPRO_PK': productPk,
-      'EPRO_FOTO': base64Image,
+      'EPRO_FOTO_URL': publicUrl,
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -192,6 +199,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               Expanded(
                 child: ListView.builder(
                   itemCount: filtered.length,
+                  itemExtent: 80,
                   itemBuilder: (context, index) {
                     final produto = filtered[index];
                     final precoValor = produto['EPRO_VLR_VAREJO'] ?? 0;
@@ -203,15 +211,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     final fotos = produto['ESTQ_PRODUTO_FOTO'] as List?;
                     Widget leadingWidget = const Icon(Icons.shopping_cart);
                     if (fotos != null && fotos.isNotEmpty) {
-                      final fotoBase64 = fotos.first['EPRO_FOTO'];
-                      if (fotoBase64 != null && fotoBase64 is String && fotoBase64.isNotEmpty) {
-                        try {
-                          final bytes = base64Decode(fotoBase64);
-                          leadingWidget = Image.memory(bytes,
-                              width: 40, height: 40, fit: BoxFit.cover);
-                        } catch (_) {
-                          // ignore decoding errors and keep icon
-                        }
+                      final url = fotos.first['EPRO_FOTO_URL'];
+                      if (url != null && url is String && url.isNotEmpty) {
+                        leadingWidget = SizedBox(
+                          width: 70,
+                          height: 70,
+                          child: CachedNetworkImage(
+                            imageUrl: url,
+                            fit: BoxFit.cover,
+                            placeholder: (c, s) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        );
                       }
                     }
                     return ListTile(
