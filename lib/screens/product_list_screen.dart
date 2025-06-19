@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'barcode_scanner_screen.dart';
+import '../widgets/product_form_dialog.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -82,84 +83,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _showProductForm([Map<String, dynamic>? product]) {
-    final eanController =
-        TextEditingController(text: product?['EPRO_COD_EAN']?.toString() ?? '');
-    final descController = TextEditingController(
-        text: product?['EPRO_DESCRICAO']?.toString().toUpperCase() ?? '');
-    final priceController = TextEditingController(
-        text: product?['EPRO_VLR_VAREJO']?.toString() ?? '');
-    final stockController = TextEditingController(
-        text: product?['EPRO_ESTQ_ATUAL']?.toString() ?? '');
-
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(product == null ? 'Novo Produto' : 'Editar Produto'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: eanController,
-              decoration: InputDecoration(
-                labelText: 'EAN',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.camera_alt),
-                  onPressed: () async {
-                    final code = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const BarcodeScannerScreen()),
-                    );
-                    if (code != null) {
-                      eanController.text = code.toString();
-                    }
-                  },
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(labelText: 'Descrição'),
-            ),
-            TextField(
-              controller: priceController,
-              decoration: const InputDecoration(labelText: 'Preço'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: stockController,
-              decoration: const InputDecoration(labelText: 'Estoque'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final data = <String, dynamic>{
-                'EPRO_COD_EAN': eanController.text,
-                'EPRO_DESCRICAO': descController.text.toUpperCase(),
-                'EPRO_VLR_VAREJO':
-                    double.tryParse(priceController.text.replaceAll(',', '.')) ??
-                        0,
-                'EPRO_ESTQ_ATUAL':
-                    double.tryParse(stockController.text.replaceAll(',', '.')) ??
-                        0,
-              };
-              if (product != null) {
-                data['EPRO_PK'] = product['EPRO_PK'];
-              }
-              Navigator.pop(context);
-              _addOrUpdateProduct(data);
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
+      builder: (_) => ProductFormDialog(
+        product: product,
+        onSave: _addOrUpdateProduct,
       ),
     );
   }
