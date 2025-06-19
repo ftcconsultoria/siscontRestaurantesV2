@@ -36,9 +36,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Código: \$_scannedValue',
-                      style: const TextStyle(color: Colors.white),
+                    const Text(
+                      'Código Escaneado',
+                      style: TextStyle(color: Colors.white),
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
