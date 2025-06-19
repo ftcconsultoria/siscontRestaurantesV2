@@ -171,14 +171,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
           final query = _searchController.text.toLowerCase();
           final filtered = produtos.where((p) {
             if (query.isEmpty) return true;
-            if (_searchType == 'Nome') {
-              return p['EPRO_DESCRICAO']
-                      ?.toString()
-                      .toLowerCase()
-                      .contains(query) ??
-                  false;
-            } else {
-              return p['EPRO_PK']?.toString().contains(query) ?? false;
+            switch (_searchType) {
+              case 'Nome':
+                return p['EPRO_DESCRICAO']
+                        ?.toString()
+                        .toLowerCase()
+                        .contains(query) ??
+                    false;
+              case 'Código':
+                return p['EPRO_PK']?.toString().contains(query) ?? false;
+              case 'EAN':
+                return p['EPRO_COD_EAN']?.toString().contains(query) ?? false;
+              default:
+                return false;
             }
           }).toList();
 
@@ -198,24 +203,44 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          labelText: 'Pesquisar',
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            labelText: 'Pesquisar',
+                            suffixIcon: _searchType == 'EAN'
+                                ? IconButton(
+                                    icon: const Icon(Icons.camera_alt),
+                                    onPressed: () async {
+                                      final code = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const BarcodeScannerScreen()),
+                                      );
+                                      if (code != null) {
+                                        setState(() {
+                                          _searchController.text =
+                                              code.toString();
+                                        });
+                                      }
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onChanged: (_) => setState(() {}),
                         ),
-                        onChanged: (_) => setState(() {}),
                       ),
-                    ),
                     const SizedBox(width: 8),
-                    DropdownButton<String>(
-                      value: _searchType,
-                      items: const [
-                        DropdownMenuItem(value: 'Nome', child: Text('Nome')),
-                        DropdownMenuItem(value: 'Código', child: Text('Código')),
-                      ],
-                      onChanged: (v) => setState(() => _searchType = v ?? 'Nome'),
-                    ),
+                      DropdownButton<String>(
+                        value: _searchType,
+                        items: const [
+                          DropdownMenuItem(value: 'Nome', child: Text('Nome')),
+                          DropdownMenuItem(value: 'Código', child: Text('Código')),
+                          DropdownMenuItem(value: 'EAN', child: Text('EAN')),
+                        ],
+                        onChanged: (v) => setState(() => _searchType = v ?? 'Nome'),
+                      ),
                   ],
                 ),
               ),
