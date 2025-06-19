@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'barcode_scanner_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -79,7 +80,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
           children: [
             TextField(
               controller: eanController,
-              decoration: const InputDecoration(labelText: 'EAN'),
+              decoration: InputDecoration(
+                labelText: 'EAN',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: () async {
+                    final code = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const BarcodeScannerScreen()),
+                    );
+                    if (code != null) {
+                      eanController.text = code.toString();
+                    }
+                  },
+                ),
+              ),
               keyboardType: TextInputType.number,
             ),
             TextField(
