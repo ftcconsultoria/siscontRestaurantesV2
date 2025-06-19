@@ -60,8 +60,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _showProductForm([Map<String, dynamic>? product]) {
-    final descController =
-        TextEditingController(text: product?['EPRO_DESCRICAO'] ?? '');
+    final descController = TextEditingController(
+        text: product?['EPRO_DESCRICAO']?.toString().toUpperCase() ?? '');
     final priceController = TextEditingController(
         text: product?['EPRO_VLR_VAREJO']?.toString() ?? '');
     final stockController = TextEditingController(
@@ -98,7 +98,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ElevatedButton(
             onPressed: () {
               final data = <String, dynamic>{
-                'EPRO_DESCRICAO': descController.text,
+                'EPRO_DESCRICAO': descController.text.toUpperCase(),
                 'EPRO_VLR_VAREJO':
                     double.tryParse(priceController.text.replaceAll(',', '.')) ??
                         0,
@@ -156,8 +156,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
             return const Center(child: Text('Nenhum produto encontrado.'));
           }
 
-          final priceFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-          final stockFormat = NumberFormat.decimalPattern('pt_BR');
+          final priceFormat =
+              NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+          final stockFormat = NumberFormat.decimalPattern('pt_BR')
+            ..minimumFractionDigits = 2
+            ..maximumFractionDigits = 2;
 
           return Column(
             children: [
@@ -191,14 +194,28 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
                     final produto = filtered[index];
-                    final price =
-                        priceFormat.format(produto['EPRO_VLR_VAREJO'] ?? 0);
-                    final stock =
-                        stockFormat.format(produto['EPRO_ESTQ_ATUAL'] ?? 0);
+                    final precoValor = produto['EPRO_VLR_VAREJO'] ?? 0;
+                    final estoqueValor = produto['EPRO_ESTQ_ATUAL'] ?? 0;
+                    final price = priceFormat.format(precoValor);
+                    final stock = stockFormat.format(estoqueValor);
+                    final priceColor = precoValor == 0 ? Colors.red : null;
+                    final stockColor = estoqueValor < 0 ? Colors.red : null;
                     return ListTile(
                       leading: const Icon(Icons.shopping_cart),
-                      title: Text(produto['EPRO_DESCRICAO'] ?? ''),
-                      subtitle: Text('Preço: $price - Estoque: $stock'),
+                      title: Text(
+                        (produto['EPRO_DESCRICAO'] ?? '').toString().toUpperCase(),
+                      ),
+                      subtitle: RichText(
+                        text: TextSpan(
+                          style: DefaultTextStyle.of(context).style,
+                          children: [
+                            const TextSpan(text: 'Preço: '),
+                            TextSpan(text: price, style: TextStyle(color: priceColor)),
+                            const TextSpan(text: ' - Estoque: '),
+                            TextSpan(text: stock, style: TextStyle(color: stockColor)),
+                          ],
+                        ),
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
