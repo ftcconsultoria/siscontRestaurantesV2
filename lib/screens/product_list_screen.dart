@@ -214,51 +214,50 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            labelText: 'Pesquisar',
-                            suffixIcon: _searchType == 'EAN'
-                                ? IconButton(
-                                    icon: const Icon(Icons.camera_alt),
-                                    onPressed: () async {
-                                      final code = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const BarcodeScannerScreen()),
-                                      );
-                                      if (code != null) {
-                                        setState(() {
-                                          _searchController.text =
-                                              code.toString();
-                                        });
-                                      }
-                                    },
-                                  )
-                                : null,
-                          ),
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ),
+                    DropdownButton<String>(
+                      value: _searchType,
+                      items: const [
+                        DropdownMenuItem(value: 'Nome', child: Text('Nome')),
+                        DropdownMenuItem(value: 'Código', child: Text('Código')),
+                        DropdownMenuItem(value: 'EAN', child: Text('EAN')),
+                      ],
+                      onChanged: (v) => setState(() => _searchType = v ?? 'Nome'),
+                    ),
                     const SizedBox(width: 8),
-                      DropdownButton<String>(
-                        value: _searchType,
-                        items: const [
-                          DropdownMenuItem(value: 'Nome', child: Text('Nome')),
-                          DropdownMenuItem(value: 'Código', child: Text('Código')),
-                          DropdownMenuItem(value: 'EAN', child: Text('EAN')),
-                        ],
-                        onChanged: (v) => setState(() => _searchType = v ?? 'Nome'),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Pesquisar',
+                          suffixIcon: _searchType == 'EAN'
+                              ? IconButton(
+                                  icon: const Icon(Icons.camera_alt),
+                                  onPressed: () async {
+                                    final code = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              const BarcodeScannerScreen()),
+                                    );
+                                    if (code != null) {
+                                      setState(() {
+                                        _searchController.text =
+                                            code.toString();
+                                      });
+                                    }
+                                  },
+                                )
+                              : null,
+                        ),
+                        onChanged: (_) => setState(() {}),
                       ),
+                    ),
                   ],
                 ),
               ),
               Expanded(
                 child: ListView.builder(
                   itemCount: filtered.length,
-                  itemExtent: 80,
                   itemBuilder: (context, index) {
                     final produto = filtered[index];
                     final precoValor = produto['EPRO_VLR_VAREJO'] ?? 0;
@@ -288,44 +287,61 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         );
                       }
                     }
-                    return ListTile(
-                      leading: leadingWidget,
-                      title: Text(
-                        (produto['EPRO_DESCRICAO'] ?? '').toString().toUpperCase(),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('EAN: ${produto['EPRO_COD_EAN'] ?? ''}'),
-                          RichText(
-                            text: TextSpan(
-                              style: DefaultTextStyle.of(context).style,
-                              children: [
-                                const TextSpan(text: 'Preço: '),
-                                TextSpan(text: price, style: TextStyle(color: priceColor)),
-                                const TextSpan(text: ' - Estoque: '),
-                                TextSpan(text: stock, style: TextStyle(color: stockColor)),
-                              ],
-                            ),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          color: Theme.of(context).cardColor,
+                          padding: const EdgeInsets.all(8),
+                          child: Row(
+                            children: [
+                              leadingWidget,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      (produto['EPRO_DESCRICAO'] ?? '')
+                                          .toString()
+                                          .toUpperCase(),
+                                    ),
+                                    Text('EAN: ${produto['EPRO_COD_EAN'] ?? ''}'),
+                                    RichText(
+                                      text: TextSpan(
+                                        style: DefaultTextStyle.of(context).style,
+                                        children: [
+                                          const TextSpan(text: 'Preço: '),
+                                          TextSpan(
+                                              text: price,
+                                              style: TextStyle(color: priceColor)),
+                                          const TextSpan(text: ' - Estoque: '),
+                                          TextSpan(
+                                              text: stock,
+                                              style: TextStyle(color: stockColor)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.photo_camera),
+                                onPressed: () => _takePhoto(produto['EPRO_PK']),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _showProductForm(produto),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _confirmDeleteProduct(produto['EPRO_PK']),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.photo_camera),
-                            onPressed: () => _takePhoto(produto['EPRO_PK']),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showProductForm(produto),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _confirmDeleteProduct(produto['EPRO_PK']),
-                          ),
-                        ],
+                        ),
                       ),
                     );
                   },
