@@ -124,6 +124,25 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$ext';
     final path = '$productPk/$fileName';
     final supabase = Supabase.instance.client;
+    final oldPhotos = await supabase
+        .from('ESTQ_PRODUTO_FOTO')
+        .select('EPRO_FOTO_URL')
+        .eq('EPRO_PK', productPk);
+    if (oldPhotos is List && oldPhotos.isNotEmpty) {
+      final paths = oldPhotos
+          .map((p) => p['EPRO_FOTO_URL'] as String?)
+          .where((url) => url != null)
+          .map((url) => url!.split('/fotos-produtos/').last)
+          .where((p) => p.isNotEmpty)
+          .toList();
+      if (paths.isNotEmpty) {
+        await supabase.storage.from('fotos-produtos').remove(paths);
+      }
+      await supabase
+          .from('ESTQ_PRODUTO_FOTO')
+          .delete()
+          .eq('EPRO_PK', productPk);
+    }
     await supabase.storage.from('fotos-produtos').uploadBinary(path, bytes);
     final publicUrl =
         supabase.storage.from('fotos-produtos').getPublicUrl(path);
