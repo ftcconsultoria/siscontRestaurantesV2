@@ -29,7 +29,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final response = await Supabase.instance.client
         .from('ESTQ_PRODUTO')
         .select(
-            'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN')
+            'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, ESTQ_PRODUTO_FOTO(EPRO_FOTO)')
         .order('EPRO_DESCRICAO');
     final list = List<Map<String, dynamic>>.from(response);
     _products = list;
@@ -78,6 +78,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         const SnackBar(content: Text('Foto salva com sucesso')),
       );
     }
+    await _refreshProducts();
   }
 
   void _showProductForm([Map<String, dynamic>? product]) {
@@ -244,8 +245,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     final stock = stockFormat.format(estoqueValor);
                     final priceColor = precoValor == 0 ? Colors.red : null;
                     final stockColor = estoqueValor < 0 ? Colors.red : null;
+                    final fotos = produto['ESTQ_PRODUTO_FOTO'] as List?;
+                    Widget leadingWidget = const Icon(Icons.shopping_cart);
+                    if (fotos != null && fotos.isNotEmpty) {
+                      final fotoBase64 = fotos.first['EPRO_FOTO'];
+                      if (fotoBase64 != null && fotoBase64 is String && fotoBase64.isNotEmpty) {
+                        try {
+                          final bytes = base64Decode(fotoBase64);
+                          leadingWidget = Image.memory(bytes,
+                              width: 40, height: 40, fit: BoxFit.cover);
+                        } catch (_) {
+                          // ignore decoding errors and keep icon
+                        }
+                      }
+                    }
                     return ListTile(
-                      leading: const Icon(Icons.shopping_cart),
+                      leading: leadingWidget,
                       title: Text(
                         (produto['EPRO_DESCRICAO'] ?? '').toString().toUpperCase(),
                       ),
