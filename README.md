@@ -21,3 +21,8 @@ The project uses [Supabase](https://supabase.com/) as its backend. The SQL file
 at `sql/create_estq_produto_foto.sql` contains the statement used to create the
 `ESTQ_PRODUTO_FOTO` table which stores product photos. This table references the
 existing `ESTQ_PRODUTO` table and generates `EPRO_FOTO_PK` automatically.
+
+Product photos are captured directly from the product list. When you tap the
+camera icon for a product, the app uses the device camera to take a picture,
+encodes it as Base64 and inserts it into the `ESTQ_PRODUTO_FOTO` table with the
+corresponding `EPRO_PK` key.
