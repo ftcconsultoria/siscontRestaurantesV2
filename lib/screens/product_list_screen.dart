@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'barcode_scanner_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchType = 'Nome';
   List<Map<String, dynamic>> _products = [];
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -59,6 +62,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
         .delete()
         .eq('EPRO_PK', id);
     await _refreshProducts();
+  }
+
+  Future<void> _takePhoto(int productPk) async {
+    final image = await _picker.pickImage(source: ImageSource.camera);
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    final base64Image = base64Encode(bytes);
+    await Supabase.instance.client.from('ESTQ_PRODUTO_FOTO').insert({
+      'EPRO_PK': productPk,
+      'EPRO_FOTO': base64Image,
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto salva com sucesso')),
+      );
+    }
   }
 
   void _showProductForm([Map<String, dynamic>? product]) {
@@ -250,6 +269,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          IconButton(
+                            icon: const Icon(Icons.photo_camera),
+                            onPressed: () => _takePhoto(produto['EPRO_PK']),
+                          ),
                           IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () => _showProductForm(produto),

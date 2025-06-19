@@ -12,6 +12,7 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   intl: ^0.18.0
   mobile_scanner: ^3.2.0
+  image_picker: ^1.0.4
 
 flutter:
   uses-material-design: true
