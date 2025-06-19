@@ -28,3 +28,6 @@ camera icon for a product, the app uses the device camera to take a picture,
 uploads the file to the Supabase Storage bucket `fotos-produtos` and saves the
 public URL in the `EPRO_FOTO_URL` column of `ESTQ_PRODUTO_FOTO` along with the
 corresponding `EPRO_PK` key.
+
+When a product is deleted, the application also removes any associated files
+from the `fotos-produtos` bucket to avoid leaving orphan images in storage.
