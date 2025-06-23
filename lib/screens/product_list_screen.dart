@@ -7,6 +7,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'dart:typed_data';
 import 'barcode_scanner_screen.dart';
 import '../widgets/product_form_dialog.dart';
+import '../db/product_dao.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -21,6 +22,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   String _searchType = 'Nome';
   List<Map<String, dynamic>> _products = [];
   final ImagePicker _picker = ImagePicker();
+  final ProductDao _dao = ProductDao();
 
   @override
   void initState() {
@@ -29,12 +31,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchProducts() async {
-    final response = await Supabase.instance.client
-        .from('ESTQ_PRODUTO')
-        .select(
-            'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, ESTQ_PRODUTO_FOTO(EPRO_FOTO_URL)')
-        .order('EPRO_DESCRICAO');
-    final list = List<Map<String, dynamic>>.from(response);
+    final list = await _dao.getAll();
     _products = list;
     return list;
   }
@@ -47,37 +44,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Future<void> _addOrUpdateProduct(Map<String, dynamic> data) async {
-    if (data['EPRO_PK'] == null) {
-      await Supabase.instance.client.from('ESTQ_PRODUTO').insert(data);
-    } else {
-      final id = data['EPRO_PK'];
-      await Supabase.instance.client
-          .from('ESTQ_PRODUTO')
-          .update(data)
-          .eq('EPRO_PK', id);
-    }
+    await _dao.insertOrUpdate(data);
     await _refreshProducts();
   }
 
   Future<void> _deleteProduct(int id) async {
-    final supabase = Supabase.instance.client;
-    final photos = await supabase
-        .from('ESTQ_PRODUTO_FOTO')
-        .select('EPRO_FOTO_URL')
-        .eq('EPRO_PK', id);
-    if (photos is List) {
-      final paths = photos
-          .map((p) => p['EPRO_FOTO_URL'] as String?)
-          .where((url) => url != null)
-          .map((url) => url!.split('/fotos-produtos/').last)
-          .where((path) => path.isNotEmpty)
-          .toList();
-      if (paths.isNotEmpty) {
-        await supabase.storage.from('fotos-produtos').remove(paths);
-      }
-    }
-    await supabase.from('ESTQ_PRODUTO_FOTO').delete().eq('EPRO_PK', id);
-    await supabase.from('ESTQ_PRODUTO').delete().eq('EPRO_PK', id);
+    await _dao.delete(id);
     await _refreshProducts();
   }
 

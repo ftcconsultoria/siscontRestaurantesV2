@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'product_list_screen.dart';
+import '../db/sync_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -32,6 +33,23 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(builder: (context) => const ProductListScreen()),
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sync),
+              title: const Text('Sincronizar'),
+              onTap: () async {
+                Navigator.pop(context);
+                final messenger = ScaffoldMessenger.of(context);
+                messenger.showSnackBar(
+                    const SnackBar(content: Text('Sincronizando...')));
+                try {
+                  await SyncService().sync();
+                  messenger.showSnackBar(
+                      const SnackBar(content: Text('Sincronização concluída')));
+                } catch (e) {
+                  messenger.showSnackBar(SnackBar(content: Text('Erro: $e')));
+                }
               },
             ),
             ListTile(
