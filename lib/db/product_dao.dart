@@ -1,0 +1,36 @@
+import 'package:sqflite/sqflite.dart';
+import 'local_database.dart';
+
+class ProductDao {
+  Future<Database> get _db async => await LocalDatabase.instance;
+
+  Future<List<Map<String, dynamic>>> getAll() async {
+    final db = await _db;
+    return await db.query('ESTQ_PRODUTO', orderBy: 'EPRO_DESCRICAO');
+  }
+
+  Future<void> insertOrUpdate(Map<String, dynamic> data) async {
+    final db = await _db;
+    await db.insert(
+      'ESTQ_PRODUTO',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> delete(int id) async {
+    final db = await _db;
+    await db.delete('ESTQ_PRODUTO', where: 'EPRO_PK = ?', whereArgs: [id]);
+  }
+
+  Future<void> replaceAll(List<Map<String, dynamic>> products) async {
+    final db = await _db;
+    final batch = db.batch();
+    batch.delete('ESTQ_PRODUTO');
+    for (final p in products) {
+      batch.insert('ESTQ_PRODUTO', p,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+}
