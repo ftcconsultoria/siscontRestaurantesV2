@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:cross_file/cross_file.dart';
+import 'package:share_plus/share_plus.dart';
 import '../db/company_dao.dart';
 import '../db/user_dao.dart';
 import '../db/local_database.dart';
@@ -88,6 +90,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
       await File(srcPath).copy(backupPath);
       messenger.showSnackBar(
           SnackBar(content: Text('Backup exportado em $backupPath')));
+      await Share.shareXFiles([XFile(backupPath)],
+          text: 'ERP Mobile - backup do banco de dados');
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Erro ao exportar: $e')));
     }
