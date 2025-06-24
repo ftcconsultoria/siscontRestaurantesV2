@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/uppercase_input_formatter.dart';
+import '../widgets/cpf_cnpj_input_formatter.dart';
 import '../utils/validators.dart';
 
 class ClientFormScreen extends StatefulWidget {
@@ -229,6 +230,31 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            DropdownButtonFormField<String>(
+              value: _tipoPessoa,
+              decoration: const InputDecoration(labelText: 'Tipo Pessoa'),
+              items: const [
+                DropdownMenuItem(value: 'FISICA', child: Text('FÍSICA')),
+                DropdownMenuItem(value: 'JURIDICA', child: Text('JURÍDICA')),
+              ],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() {
+                    _tipoPessoa = v;
+                    final digits =
+                        _cnpjController.text.replaceAll(RegExp(r'[^0-9]'), '');
+                    final masked = v == 'FISICA'
+                        ? CpfCnpjInputFormatter.formatCpf(digits)
+                        : CpfCnpjInputFormatter.formatCnpj(digits);
+                    _cnpjController.value = TextEditingValue(
+                      text: masked,
+                      selection:
+                          TextSelection.collapsed(offset: masked.length),
+                    );
+                  });
+                }
+              },
+            ),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Nome'),
@@ -244,9 +270,12 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             TextField(
               controller: _cnpjController,
               focusNode: _cnpjFocusNode,
-              decoration: InputDecoration(labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ'),
+              decoration: InputDecoration(
+                  labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ'),
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              inputFormatters: [
+                CpfCnpjInputFormatter(isCpf: _tipoPessoa == 'FISICA')
+              ],
             ),
             TextField(
               controller: _ieController,
@@ -306,21 +335,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             TextField(
               controller: _ufController,
               decoration: const InputDecoration(labelText: 'UF'),
-            ),
-            DropdownButtonFormField<String>(
-              value: _tipoPessoa,
-              decoration: const InputDecoration(labelText: 'Tipo Pessoa'),
-              items: const [
-                DropdownMenuItem(value: 'FISICA', child: Text('FÍSICA')),
-                DropdownMenuItem(value: 'JURIDICA', child: Text('JURÍDICA')),
-              ],
-              onChanged: (v) {
-                if (v != null) {
-                  setState(() {
-                    _tipoPessoa = v;
-                  });
-                }
-              },
             ),
           ],
         ),
