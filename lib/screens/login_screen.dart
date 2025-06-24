@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _userController = TextEditingController();
   final _passwordController = TextEditingController();
   final CompanyDao _companyDao = CompanyDao();
   final UserDao _userDao = UserDao();
@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Validates credentials against the local database and logs in the user.
   Future<void> _login() async {
-    final username = _emailController.text.trim();
+    final username = _userController.text.trim();
     final password = _passwordController.text;
     if (username.isEmpty || password.isEmpty) return;
     final user = await _userDao.getByCredentials(username, password);
@@ -92,21 +92,36 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: Center(
           child: SingleChildScrollView(
-            child: Card(
-              elevation: 12,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_companyName != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      _companyName!,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                Card(
+                  elevation: 12,
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                     TextField(
-                      controller: _emailController,
+                      controller: _userController,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Usuário',
                         prefixIcon: Icon(Icons.mail_outline),
                         border: OutlineInputBorder(),
                       ),
@@ -142,20 +157,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _companyName != null
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 32.0),
-              child: Text(
-                'Empresa: $_companyName',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 20,
-                ),
-              ),
-            )
-          : null,
     );
   }
 }
