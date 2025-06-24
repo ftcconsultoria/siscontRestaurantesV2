@@ -1,21 +1,31 @@
 import 'package:sqflite/sqflite.dart';
 import 'local_database.dart';
+import 'company_dao.dart';
 
 class ProductDao {
   /// Shortcut to obtain the opened database instance.
   Future<Database> get _db async => await LocalDatabase.instance;
 
+  final CompanyDao _companyDao = CompanyDao();
+
+  Future<int?> _getCompanyPk() async {
+    final company = await _companyDao.getFirst();
+    return company?['CEMP_PK'] as int?;
+  }
+
   /// Returns all products joined with their photos, sorted by description.
   Future<List<Map<String, dynamic>>> getAll() async {
     final db = await _db;
+    final companyPk = await _getCompanyPk();
     final rows = await db.rawQuery('''
 SELECT p.EPRO_PK, p.EPRO_DESCRICAO, p.EPRO_VLR_VAREJO,
-       p.EPRO_ESTQ_ATUAL, p.EPRO_COD_EAN,
+       p.EPRO_ESTQ_ATUAL, p.EPRO_COD_EAN, p.CEMP_PK,
        f.EPRO_FOTO_PK AS FOTO_PK, f.EPRO_FOTO_URL
 FROM ESTQ_PRODUTO p
 LEFT JOIN ESTQ_PRODUTO_FOTO f ON p.EPRO_PK = f.EPRO_PK
+${companyPk != null ? 'WHERE p.CEMP_PK = ?' : ''}
 ORDER BY p.EPRO_DESCRICAO
-''');
+''', companyPk != null ? [companyPk] : null);
 
     return rows.map((r) {
       final map = Map<String, dynamic>.from(r);
@@ -37,6 +47,10 @@ ORDER BY p.EPRO_DESCRICAO
   /// Inserts or updates a product record.
   Future<void> insertOrUpdate(Map<String, dynamic> data) async {
     final db = await _db;
+    final companyPk = data['CEMP_PK'] ?? await _getCompanyPk();
+    if (companyPk != null) {
+      data['CEMP_PK'] = companyPk;
+    }
     await db.insert(
       'ESTQ_PRODUTO',
       data,
@@ -84,6 +98,14 @@ ORDER BY p.EPRO_DESCRICAO
   /// Returns all photo records.
   Future<List<Map<String, dynamic>>> getAllPhotos() async {
     final db = await _db;
+    final companyPk = await _getCompanyPk();
+    if (companyPk != null) {
+      return await db.rawQuery('''
+SELECT f.* FROM ESTQ_PRODUTO_FOTO f
+JOIN ESTQ_PRODUTO p ON f.EPRO_PK = p.EPRO_PK
+WHERE p.CEMP_PK = ?
+''', [companyPk]);
+    }
     return await db.query('ESTQ_PRODUTO_FOTO');
   }
 

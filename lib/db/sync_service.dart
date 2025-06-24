@@ -1,18 +1,25 @@
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'product_dao.dart';
+import 'company_dao.dart';
 
 class SyncService {
   final _dao = ProductDao();
+  final _companyDao = CompanyDao();
 
   /// Pushes local changes to Supabase and pulls remote updates.
   Future<void> sync() async {
     final supabase = Supabase.instance.client;
+    final company = await _companyDao.getFirst();
+    final companyPk = company?['CEMP_PK'] as int?;
 
     // push local products
     final localProducts = await _dao.getAll();
     for (final p in localProducts) {
       final data = Map<String, dynamic>.from(p)..remove('ESTQ_PRODUTO_FOTO');
+      if (companyPk != null) {
+        data['CEMP_PK'] = companyPk;
+      }
       await supabase.from('ESTQ_PRODUTO').upsert(data);
     }
 
@@ -45,18 +52,27 @@ class SyncService {
     }
 
     // pull remote products
-    final remote = await supabase
+    final remoteQuery = supabase
         .from('ESTQ_PRODUTO')
-        .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN')
+        .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
         .order('EPRO_DESCRICAO');
+    final remote = companyPk != null
+        ? await remoteQuery.eq('CEMP_PK', companyPk)
+        : await remoteQuery;
     final list = List<Map<String, dynamic>>.from(remote);
     await _dao.replaceAll(list);
 
-    // pull remote photos
-    final remotePhotos = await supabase
-        .from('ESTQ_PRODUTO_FOTO')
-        .select('EPRO_FOTO_PK, EPRO_PK, EPRO_FOTO_URL');
-    final photos = List<Map<String, dynamic>>.from(remotePhotos);
-    await _dao.replaceAllPhotos(photos);
+    // pull remote photos only for retrieved products
+    final productPks = list.map((e) => e['EPRO_PK'] as int).toList();
+    if (productPks.isNotEmpty) {
+      final remotePhotos = await supabase
+          .from('ESTQ_PRODUTO_FOTO')
+          .select('EPRO_FOTO_PK, EPRO_PK, EPRO_FOTO_URL')
+          .in_('EPRO_PK', productPks);
+      final photos = List<Map<String, dynamic>>.from(remotePhotos);
+      await _dao.replaceAllPhotos(photos);
+    } else {
+      await _dao.replaceAllPhotos([]);
+    }
   }
 }
