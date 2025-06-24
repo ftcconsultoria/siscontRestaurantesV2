@@ -30,6 +30,11 @@ foreign key to `ESTQ_PRODUTO`, linking each product to a company in
 A separate SQL script at `sql/create_cade_empresa.sql` defines the
 `CADE_EMPRESA` table used for storing company information.
 
+The file `sql/create_cade_usuario.sql` creates the `CADE_USUARIO` table
+which stores application users. Each user belongs to a company via the
+`CEMP_PK` foreign key. Login credentials will be downloaded from Supabase
+after the company is set up and validated against this table.
+
 Products now include a `CEMP_PK` foreign key referencing `CADE_EMPRESA`.
 When synchronizing with Supabase the app filters products by the
 company saved locally so that only records for the active company are
