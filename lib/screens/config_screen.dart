@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../db/company_dao.dart';
+import '../db/user_dao.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConfigScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class ConfigScreen extends StatefulWidget {
 class _ConfigScreenState extends State<ConfigScreen> {
   final TextEditingController _cnpjController = TextEditingController();
   final CompanyDao _companyDao = CompanyDao();
+  final UserDao _userDao = UserDao();
   String? _companyName;
 
   @override
@@ -46,6 +48,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
           .maybeSingle();
       if (result != null) {
         await _companyDao.setCompany(result);
+        final users = await supabase
+            .from('CADE_USUARIO')
+            .select('CUSU_PK, CUSU_USUARIO, CUSU_SENHA, CEMP_PK')
+            .eq('CEMP_PK', result['CEMP_PK']);
+        await _userDao.replaceAll(List<Map<String, dynamic>>.from(users));
         if (mounted) {
           setState(() {
             _companyName = result['CEMP_NOME_FANTASIA'] as String?;
