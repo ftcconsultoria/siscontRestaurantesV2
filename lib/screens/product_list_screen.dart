@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
+import 'dart:io';
 import 'dart:typed_data';
 import 'barcode_scanner_screen.dart';
 import '../widgets/product_form_dialog.dart';
@@ -55,6 +57,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   /// Deletes the given product and refreshes the list.
   Future<void> _deleteProduct(int id) async {
+    final photo = await _dao.getPhoto(id);
+    if (photo != null) {
+      final url = photo['EPRO_FOTO_URL'] as String?;
+      if (url != null && !url.startsWith('http')) {
+        final file = File(url);
+        if (await file.exists()) await file.delete();
+      }
+      await _dao.deletePhoto(id);
+    }
     await _dao.delete(id);
     await _refreshProducts();
   }
@@ -95,7 +106,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return result;
   }
 
-  /// Captures a photo for a product and uploads it to Supabase Storage.
+  /// Captures a photo for a product and stores it locally until sync.
   Future<void> _takePhoto(int productPk) async {
     final image = await _picker.pickImage(source: ImageSource.camera);
     if (image == null) return;
@@ -103,37 +114,23 @@ class _ProductListScreenState extends State<ProductListScreen> {
     bytes = await _compressImage(bytes);
     final ext = 'jpg';
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$ext';
-    final path = '$productPk/$fileName';
-    final supabase = Supabase.instance.client;
-    final oldPhotos = await supabase
-        .from('ESTQ_PRODUTO_FOTO')
-        .select('EPRO_FOTO_URL')
-        .eq('EPRO_PK', productPk);
-    if (oldPhotos is List && oldPhotos.isNotEmpty) {
-      final paths = oldPhotos
-          .map((p) => p['EPRO_FOTO_URL'] as String?)
-          .where((url) => url != null)
-          .map((url) => url!.split('/fotos-produtos/').last)
-          .where((p) => p.isNotEmpty)
-          .toList();
-      if (paths.isNotEmpty) {
-        await supabase.storage.from('fotos-produtos').remove(paths);
+    final dir = await getApplicationDocumentsDirectory();
+    final path = join(dir.path, fileName);
+    await File(path).writeAsBytes(bytes);
+
+    final existing = await _dao.getPhoto(productPk);
+    if (existing != null) {
+      final oldUrl = existing['EPRO_FOTO_URL'] as String?;
+      if (oldUrl != null && !oldUrl.startsWith('http')) {
+        final f = File(oldUrl);
+        if (await f.exists()) await f.delete();
       }
-      await supabase
-          .from('ESTQ_PRODUTO_FOTO')
-          .delete()
-          .eq('EPRO_PK', productPk);
     }
-    await supabase.storage.from('fotos-produtos').uploadBinary(path, bytes);
-    final publicUrl =
-        supabase.storage.from('fotos-produtos').getPublicUrl(path);
-    await supabase.from('ESTQ_PRODUTO_FOTO').insert({
-      'EPRO_PK': productPk,
-      'EPRO_FOTO_URL': publicUrl,
-    });
+    await _dao.upsertPhoto(productPk, path);
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto salva com sucesso')),
+        const SnackBar(content: Text('Foto armazenada no dispositivo')),
       );
     }
     await _refreshProducts();
@@ -145,7 +142,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       context: context,
       builder: (_) => Dialog(
         child: InteractiveViewer(
-          child: CachedNetworkImage(imageUrl: url),
+          child: url.startsWith('http')
+              ? CachedNetworkImage(imageUrl: url)
+              : Image.file(File(url)),
         ),
       ),
     );
@@ -283,13 +282,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           child: SizedBox(
                             width: 70,
                             height: 70,
-                            child: CachedNetworkImage(
-                              imageUrl: url,
-                              fit: BoxFit.cover,
-                              placeholder: (c, s) => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
+                            child: url.startsWith('http')
+                                ? CachedNetworkImage(
+                                    imageUrl: url,
+                                    fit: BoxFit.cover,
+                                    placeholder: (c, s) => const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                : Image.file(
+                                    File(url),
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                         );
                       }
