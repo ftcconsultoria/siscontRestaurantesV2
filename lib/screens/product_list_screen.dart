@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'dart:io';
 import 'dart:typed_data';
 import 'barcode_scanner_screen.dart';
@@ -115,7 +115,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final ext = 'jpg';
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$ext';
     final dir = await getApplicationDocumentsDirectory();
-    final path = join(dir.path, fileName);
+    final path = p.join(dir.path, fileName);
     await File(path).writeAsBytes(bytes);
 
     final existing = await _dao.getPhoto(productPk);
