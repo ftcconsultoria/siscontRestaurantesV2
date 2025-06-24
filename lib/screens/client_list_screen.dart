@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/contact_form_dialog.dart';
+import 'client_form_screen.dart';
 import '../db/contact_dao.dart';
 
 class ClientListScreen extends StatefulWidget {
@@ -60,11 +60,13 @@ class _ClientListScreenState extends State<ClientListScreen> {
   }
 
   void _showForm([Map<String, dynamic>? contact]) {
-    showDialog(
-      context: context,
-      builder: (context) => ContactFormDialog(
-        contact: contact,
-        onSave: _addOrUpdate,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ClientFormScreen(
+          client: contact,
+          onSave: _addOrUpdate,
+        ),
       ),
     );
   }
