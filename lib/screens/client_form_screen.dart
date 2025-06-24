@@ -107,9 +107,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         setState(() {
           _nameController.text =
               (data['razao_social'] ?? _nameController.text).toString();
-          _fantasiaController.text =
-              (data['nome_fantasia'] ?? _fantasiaController.text).toString();
           final est = data['estabelecimento'] as Map<String, dynamic>?;
+          _fantasiaController.text = (data['nome_fantasia'] ??
+                  est?['nome_fantasia'] ?? _fantasiaController.text)
+              .toString();
           if (est != null) {
             _cepController.text = est['cep']?.toString() ?? _cepController.text;
             _logradouroController.text =
