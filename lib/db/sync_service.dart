@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'product_dao.dart';
 import 'company_dao.dart';
+import 'contact_dao.dart';
 
 class SyncService {
   final _dao = ProductDao();
   final _companyDao = CompanyDao();
+  final _contactDao = ContactDao();
 
   /// Pushes local changes to Supabase and pulls remote updates.
   Future<void> sync() async {
@@ -21,6 +23,16 @@ class SyncService {
         data['CEMP_PK'] = companyPk;
       }
       await supabase.from('ESTQ_PRODUTO').upsert(data);
+    }
+
+    // push local clients
+    final localClients = await _contactDao.getAll();
+    for (final c in localClients) {
+      final data = Map<String, dynamic>.from(c);
+      if (companyPk != null) {
+        data['CEMP_PK'] = companyPk;
+      }
+      await supabase.from('CADE_CONTATO').upsert(data);
     }
 
     // push local photos

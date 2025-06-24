@@ -51,3 +51,8 @@ corresponding `EPRO_PK` key.
 
 When a product is deleted, the application also removes any associated files
 from the `fotos-produtos` bucket to avoid leaving orphan images in storage.
+
+Client information is stored in the `CADE_CONTATO` table. Each record also
+includes a `CEMP_PK` foreign key so that contacts belong to a specific
+company. The synchronization routine now uploads these client records to
+Supabase together with products and photos.
