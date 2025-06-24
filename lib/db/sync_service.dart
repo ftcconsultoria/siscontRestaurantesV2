@@ -9,11 +9,15 @@ class SyncService {
   final _companyDao = CompanyDao();
   final _contactDao = ContactDao();
 
-  /// Pushes local changes to Supabase and pulls remote updates.
-  Future<void> sync() async {
-    final supabase = Supabase.instance.client;
+  Future<int?> _companyPk() async {
     final company = await _companyDao.getFirst();
-    final companyPk = company?['CEMP_PK'] as int?;
+    return company?['CEMP_PK'] as int?;
+  }
+
+  /// Pushes local changes to Supabase.
+  Future<void> push() async {
+    final supabase = Supabase.instance.client;
+    final companyPk = await _companyPk();
 
     // push local products
     final localProducts = await _dao.getAll();
@@ -65,6 +69,12 @@ class SyncService {
         });
       }
     }
+  }
+
+  /// Pulls remote data from Supabase and updates local tables.
+  Future<void> pull() async {
+    final supabase = Supabase.instance.client;
+    final companyPk = await _companyPk();
 
     // pull remote products
     final remoteQuery = supabase
@@ -96,5 +106,11 @@ class SyncService {
     } else {
       await _dao.replaceAllPhotos([]);
     }
+  }
+
+  /// Performs a push followed by a pull.
+  Future<void> sync() async {
+    await push();
+    await pull();
   }
 }
