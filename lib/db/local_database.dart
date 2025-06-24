@@ -5,6 +5,20 @@ import 'package:sqflite/sqflite.dart';
 class LocalDatabase {
   static Database? _db;
 
+  /// Returns the path to the database file.
+  static Future<String> get path async {
+    final documentsDir = await getApplicationDocumentsDirectory();
+    return join(documentsDir.path, 'erp_mobile.db');
+  }
+
+  /// Closes the database if it's open.
+  static Future<void> close() async {
+    if (_db != null) {
+      await _db!.close();
+      _db = null;
+    }
+  }
+
   /// Returns a singleton instance of the local database.
   static Future<Database> get instance async {
     if (_db != null) return _db!;
@@ -14,10 +28,9 @@ class LocalDatabase {
 
   /// Opens the database and creates tables on first use.
   static Future<Database> _initDb() async {
-    final documentsDir = await getApplicationDocumentsDirectory();
-    final path = join(documentsDir.path, 'erp_mobile.db');
+    final dbPath = await path;
     return openDatabase(
-      path,
+      dbPath,
       version: 5,
       onCreate: (db, version) async {
         await db.execute('''
