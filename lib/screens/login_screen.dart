@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import '../db/company_dao.dart';
+import '../db/user_dao.dart';
 import 'config_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final CompanyDao _companyDao = CompanyDao();
+  final UserDao _userDao = UserDao();
   String? _companyName;
 
   @override
@@ -41,8 +44,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Handles the login action and navigates to the home screen.
-  void _login() {
+  /// Validates credentials against the local database and logs in the user.
+  Future<void> _login() async {
+    final username = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (username.isEmpty || password.isEmpty) return;
+    final user = await _userDao.getByCredentials(username, password);
+    final messenger = ScaffoldMessenger.of(context);
+    if (user == null) {
+      messenger.showSnackBar(const SnackBar(
+          content: Text('Usuário ou senha inválidos'),
+          backgroundColor: Colors.red));
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('logged_user_pk', user['CUSU_PK'] as int);
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const HomeScreen()),
