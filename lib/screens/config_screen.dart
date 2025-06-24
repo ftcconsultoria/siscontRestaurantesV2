@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../db/company_dao.dart';
 import '../db/user_dao.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -85,6 +86,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
               controller: _cnpjController,
               decoration: const InputDecoration(labelText: 'CNPJ'),
               keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
             if (_companyName != null)
               Padding(
