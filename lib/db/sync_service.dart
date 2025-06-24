@@ -69,10 +69,11 @@ class SyncService {
     // pull remote photos only for retrieved products
     final productPks = list.map((e) => e['EPRO_PK'] as int).toList();
     if (productPks.isNotEmpty) {
+      final pkList = productPks.join(',');
       final remotePhotos = await supabase
           .from('ESTQ_PRODUTO_FOTO')
           .select('EPRO_FOTO_PK, EPRO_PK, EPRO_FOTO_URL')
-          .in_('EPRO_PK', productPks);
+          .filter('EPRO_PK', 'in', '($pkList)');
       final photos = List<Map<String, dynamic>>.from(remotePhotos);
       await _dao.replaceAllPhotos(photos);
     } else {
