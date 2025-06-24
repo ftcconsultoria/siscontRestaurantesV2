@@ -7,6 +7,7 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
+  /// Builds the main menu with navigation options and sync actions.
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Painel ERP')),

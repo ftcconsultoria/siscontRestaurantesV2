@@ -4,6 +4,7 @@ import 'product_dao.dart';
 class SyncService {
   final _dao = ProductDao();
 
+  /// Pushes local changes to Supabase and pulls remote updates.
   Future<void> sync() async {
     final supabase = Supabase.instance.client;
 

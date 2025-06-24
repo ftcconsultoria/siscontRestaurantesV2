@@ -9,6 +9,7 @@ class ProductFormDialog extends StatefulWidget {
       : super(key: key);
 
   @override
+  /// Creates the mutable state for the dialog.
   State<ProductFormDialog> createState() => _ProductFormDialogState();
 }
 
@@ -19,6 +20,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   late TextEditingController _stockController;
 
   @override
+  /// Initializes the form controllers with existing product data.
   void initState() {
     super.initState();
     _eanController =
@@ -32,6 +34,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   }
 
   @override
+  /// Disposes all controllers to free resources.
   void dispose() {
     _eanController.dispose();
     _descController.dispose();
@@ -40,6 +43,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     super.dispose();
   }
 
+  /// Collects the form data and returns it via the callback.
   void _submit() {
     final data = <String, dynamic>{
       'EPRO_COD_EAN': _eanController.text,
@@ -57,6 +61,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   }
 
   @override
+  /// Builds the dialog containing the product form fields.
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(widget.product == null ? 'Novo Produto' : 'Editar Produto'),

@@ -6,12 +6,14 @@ import 'dart:io';
 class LocalDatabase {
   static Database? _db;
 
+  /// Returns a singleton instance of the local database.
   static Future<Database> get instance async {
     if (_db != null) return _db!;
     _db = await _initDb();
     return _db!;
   }
 
+  /// Opens the database and creates tables on first use.
   static Future<Database> _initDb() async {
     final documentsDir = await getApplicationDocumentsDirectory();
     final path = join(documentsDir.path, 'erp_mobile.db');
