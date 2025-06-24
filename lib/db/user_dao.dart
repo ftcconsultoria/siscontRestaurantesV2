@@ -32,4 +32,18 @@ class UserDao {
     }
     await batch.commit(noResult: true);
   }
+
+  /// Returns a user matching the provided credentials or null if none match.
+  Future<Map<String, dynamic>?> getByCredentials(
+      String username, String password) async {
+    final db = await _db;
+    final result = await db.query(
+      'CADE_USUARIO',
+      where: 'CUSU_USUARIO = ? AND CUSU_SENHA = ?',
+      whereArgs: [username, password],
+      limit: 1,
+    );
+    if (result.isNotEmpty) return result.first;
+    return null;
+  }
 }
