@@ -5,7 +5,6 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:file_picker/file_picker.dart';
 import '../db/company_dao.dart';
 import '../db/user_dao.dart';
 import '../db/local_database.dart';
@@ -98,23 +97,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
     }
   }
 
-  /// Imports the SQLite database by letting the user choose a `.db` file from
-  /// device storage and replacing the current database with it.
+  /// Imports the SQLite database from the default backup location and
+  /// replaces the current database with it.
   Future<void> _importBackup() async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['db'],
-      );
-      if (result == null || result.files.single.path == null) {
-        // User canceled the picker.
-        return;
-      }
-      final file = File(result.files.single.path!);
+      Directory? dir = await getExternalStorageDirectory();
+      dir ??= await getApplicationDocumentsDirectory();
+      final file = File(p.join(dir.path, 'erp_mobile_backup.db'));
       if (!await file.exists()) {
         messenger.showSnackBar(
-            SnackBar(content: Text('Arquivo não encontrado: ${file.path}')));
+            SnackBar(content: Text('Backup não encontrado em ${file.path}')));
         return;
       }
       final dbPath = await LocalDatabase.path;
