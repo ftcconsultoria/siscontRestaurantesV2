@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/uppercase_input_formatter.dart';
+import '../utils/validators.dart';
 
 class ClientFormScreen extends StatefulWidget {
   final Map<String, dynamic>? client;
@@ -16,6 +17,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _fantasiaController;
   late final TextEditingController _cnpjController;
+  late final FocusNode _cnpjFocusNode;
   late final TextEditingController _ieController;
   late final TextEditingController _cepController;
   late final TextEditingController _logradouroController;
@@ -38,6 +40,13 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _fantasiaController = TextEditingController(
         text: c?['CCOT_FANTASIA']?.toString().toUpperCase() ?? '');
     _cnpjController = TextEditingController(text: c?['CCOT_CNPJ']?.toString() ?? '');
+    _cnpjFocusNode = FocusNode();
+    _cnpjFocusNode.addListener(() {
+      if (!_cnpjFocusNode.hasFocus) {
+        showDocumentValidation(
+            context, _cnpjController.text, _tipoPessoa == 'FISICA');
+      }
+    });
     _ieController = TextEditingController(text: c?['CCOT_IE']?.toString() ?? '');
     _cepController = TextEditingController(text: c?['CCOT_END_CEP']?.toString() ?? '');
     _logradouroController =
@@ -63,6 +72,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _nameController.dispose();
     _fantasiaController.dispose();
     _cnpjController.dispose();
+    _cnpjFocusNode.dispose();
     _ieController.dispose();
     _cepController.dispose();
     _logradouroController.dispose();
@@ -132,6 +142,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             ),
             TextField(
               controller: _cnpjController,
+              focusNode: _cnpjFocusNode,
               decoration: InputDecoration(labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ'),
               keyboardType: TextInputType.number,
             ),
