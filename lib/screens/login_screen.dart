@@ -82,9 +82,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.only(top: 32.0),
                   child: Text(
                     'Empresa: $_companyName',
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.lightBlue,
+                      fontSize: 28,
                     ),
                   ),
                 ),

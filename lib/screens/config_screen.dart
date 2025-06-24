@@ -82,8 +82,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
             if (_companyName != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Text('Empresa: $_companyName',
-                    style: TextStyle(color: Colors.green)),
+                child: Text(
+                  'Empresa: $_companyName',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.green,
+                    fontSize: 28,
+                  ),
+                ),
               ),
             const SizedBox(height: 8),
             ElevatedButton(
