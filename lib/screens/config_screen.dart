@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import '../db/company_dao.dart';
 import '../db/user_dao.dart';
+import '../db/local_database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConfigScreen extends StatefulWidget {
@@ -72,6 +76,49 @@ class _ConfigScreenState extends State<ConfigScreen> {
     }
   }
 
+  /// Exports the SQLite database to a file named `erp_mobile_backup.db` in the
+  /// application's documents directory or external storage if available.
+  Future<void> _exportBackup() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final srcPath = await LocalDatabase.path;
+      Directory? dir = await getExternalStorageDirectory();
+      dir ??= await getApplicationDocumentsDirectory();
+      final backupPath = p.join(dir.path, 'erp_mobile_backup.db');
+      await File(srcPath).copy(backupPath);
+      messenger.showSnackBar(
+          SnackBar(content: Text('Backup exportado em $backupPath')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Erro ao exportar: $e')));
+    }
+  }
+
+  /// Imports the SQLite database from `erp_mobile_backup.db` located in the
+  /// documents or external storage directory, replacing the current database.
+  Future<void> _importBackup() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      Directory? dir = await getExternalStorageDirectory();
+      dir ??= await getApplicationDocumentsDirectory();
+      final backupPath = p.join(dir.path, 'erp_mobile_backup.db');
+      final file = File(backupPath);
+      if (!await file.exists()) {
+        messenger.showSnackBar(
+            SnackBar(content: Text('Backup não encontrado em $backupPath')));
+        return;
+      }
+      final dbPath = await LocalDatabase.path;
+      await LocalDatabase.close();
+      await file.copy(dbPath);
+      await LocalDatabase.instance; // reopen
+      await _loadLocalCompany();
+      messenger.showSnackBar(
+          const SnackBar(content: Text('Backup importado com sucesso')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Erro ao importar: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,6 +151,16 @@ class _ConfigScreenState extends State<ConfigScreen> {
             ElevatedButton(
               onPressed: _fetchCompany,
               child: const Text('Carregar Empresa'),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _exportBackup,
+              child: const Text('Exportar Backup'),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _importBackup,
+              child: const Text('Importar Backup'),
             ),
           ],
         ),
