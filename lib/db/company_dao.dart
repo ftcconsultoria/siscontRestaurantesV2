@@ -21,6 +21,16 @@ class CompanyDao {
     );
   }
 
+  /// Replaces any existing company with the provided one.
+  Future<void> setCompany(Map<String, dynamic> data) async {
+    final db = await _db;
+    final batch = db.batch();
+    batch.delete('CADE_EMPRESA');
+    batch.insert('CADE_EMPRESA', data,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+    await batch.commit(noResult: true);
+  }
+
   /// Deletes a company by its primary key.
   Future<void> delete(int id) async {
     final db = await _db;
