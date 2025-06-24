@@ -18,7 +18,7 @@ class LocalDatabase {
     final path = join(documentsDir.path, 'erp_mobile.db');
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -54,6 +54,27 @@ CREATE TABLE CADE_USUARIO (
   CEMP_PK INTEGER
 )
 ''');
+        await db.execute('''
+CREATE TABLE CADE_CONTATO (
+  CCOT_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CCOT_NOME TEXT NOT NULL,
+  CCOT_FANTASIA TEXT,
+  CCOT_CNPJ TEXT,
+  CCOT_IE TEXT,
+  CCOT_END_CEP TEXT,
+  CCOT_END_NOME_LOGRADOURO TEXT,
+  CCOT_END_COMPLEMENTO TEXT,
+  CCOT_END_QUADRA TEXT,
+  CCOT_END_LOTE TEXT,
+  CCOT_END_NUMERO TEXT,
+  CCOT_END_BAIRRO TEXT,
+  CCOT_END_MUNICIPIO TEXT,
+  CCOT_END_CODIGO_IBGE TEXT,
+  CCOT_END_UF TEXT,
+  CEMP_PK INTEGER,
+  CCOT_TP_PESSOA TEXT
+)
+''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -78,6 +99,29 @@ CREATE TABLE CADE_USUARIO (
   CUSU_USUARIO TEXT NOT NULL,
   CUSU_SENHA TEXT,
   CEMP_PK INTEGER
+)
+''');
+        }
+        if (oldVersion < 5) {
+          await db.execute('''
+CREATE TABLE CADE_CONTATO (
+  CCOT_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CCOT_NOME TEXT NOT NULL,
+  CCOT_FANTASIA TEXT,
+  CCOT_CNPJ TEXT,
+  CCOT_IE TEXT,
+  CCOT_END_CEP TEXT,
+  CCOT_END_NOME_LOGRADOURO TEXT,
+  CCOT_END_COMPLEMENTO TEXT,
+  CCOT_END_QUADRA TEXT,
+  CCOT_END_LOTE TEXT,
+  CCOT_END_NUMERO TEXT,
+  CCOT_END_BAIRRO TEXT,
+  CCOT_END_MUNICIPIO TEXT,
+  CCOT_END_CODIGO_IBGE TEXT,
+  CCOT_END_UF TEXT,
+  CEMP_PK INTEGER,
+  CCOT_TP_PESSOA TEXT
 )
 ''');
         }

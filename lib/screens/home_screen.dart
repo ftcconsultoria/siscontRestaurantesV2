@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'product_list_screen.dart';
+import 'client_list_screen.dart';
 import '../db/sync_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
@@ -37,6 +38,17 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => const ProductListScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Clientes'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ClientListScreen()),
                 );
               },
             ),
