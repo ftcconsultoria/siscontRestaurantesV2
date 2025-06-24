@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/uppercase_input_formatter.dart';
 import '../widgets/cpf_cnpj_input_formatter.dart';
+import '../widgets/cep_input_formatter.dart';
 import '../utils/validators.dart';
 
 class ClientFormScreen extends StatefulWidget {
@@ -363,6 +364,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               focusNode: _cepFocusNode,
               decoration: const InputDecoration(labelText: 'CEP'),
               keyboardType: TextInputType.number,
+              inputFormatters: [CepInputFormatter()],
             ),
             TextField(
               controller: _logradouroController,
