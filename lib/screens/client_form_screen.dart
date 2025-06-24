@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../widgets/uppercase_input_formatter.dart';
 import '../utils/validators.dart';
 
@@ -45,6 +47,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       if (!_cnpjFocusNode.hasFocus) {
         showDocumentValidation(
             context, _cnpjController.text, _tipoPessoa == 'FISICA');
+        if (_tipoPessoa == 'JURIDICA' &&
+            isValidCnpj(_cnpjController.text)) {
+          _lookupCnpj();
+        }
       }
     });
     _ieController = TextEditingController(text: c?['CCOT_IE']?.toString() ?? '');
@@ -85,6 +91,65 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _codigoIbgeController.dispose();
     _ufController.dispose();
     super.dispose();
+  }
+
+  Future<void> _lookupCnpj() async {
+    final cnpj = _cnpjController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cnpj.isEmpty) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+        const SnackBar(content: Text('Consultando CNPJ...')));
+    try {
+      final url = Uri.parse('https://publica.cnpj.ws/cnpj/' + cnpj);
+      final resp = await http.get(url);
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body) as Map<String, dynamic>;
+        setState(() {
+          _nameController.text =
+              (data['razao_social'] ?? _nameController.text).toString();
+          _fantasiaController.text =
+              (data['nome_fantasia'] ?? _fantasiaController.text).toString();
+          final est = data['estabelecimento'] as Map<String, dynamic>?;
+          if (est != null) {
+            _cepController.text = est['cep']?.toString() ?? _cepController.text;
+            _logradouroController.text =
+                (est['logradouro'] ?? _logradouroController.text).toString();
+            _numeroController.text =
+                est['numero']?.toString() ?? _numeroController.text;
+            _complementoController.text =
+                (est['complemento'] ?? _complementoController.text).toString();
+            _bairroController.text =
+                (est['bairro'] ?? _bairroController.text).toString();
+            final cidade = est['cidade'] as Map<String, dynamic>?;
+            if (cidade != null) {
+              _municipioController.text =
+                  (cidade['nome'] ?? _municipioController.text).toString();
+              _codigoIbgeController.text =
+                  cidade['ibge_id']?.toString() ?? _codigoIbgeController.text;
+            }
+            final estado = est['estado'] as Map<String, dynamic>?;
+            if (estado != null) {
+              _ufController.text =
+                  (estado['sigla'] ?? _ufController.text).toString();
+            }
+            final inscricoes = est['inscricoes_estaduais'];
+            if (inscricoes is List && inscricoes.isNotEmpty) {
+              final ie = inscricoes.first['inscricao_estadual'];
+              if (ie != null) _ieController.text = ie.toString();
+            }
+          }
+        });
+        messenger.showSnackBar(const SnackBar(
+            content: Text('Dados preenchidos a partir do CNPJ'),
+            backgroundColor: Colors.green));
+      } else {
+        messenger.showSnackBar(SnackBar(
+            content: Text('Erro ao consultar CNPJ: ${resp.statusCode}')));
+      }
+    } catch (e) {
+      messenger
+          .showSnackBar(SnackBar(content: Text('Erro ao consultar CNPJ: $e')));
+    }
   }
 
   void _submit() {
