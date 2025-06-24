@@ -23,6 +23,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late final TextEditingController _fantasiaController;
   late final TextEditingController _cnpjController;
   late final FocusNode _cnpjFocusNode;
+  late final FocusNode _cepFocusNode;
   late final TextEditingController _ieController;
   late final TextEditingController _cepController;
   late final TextEditingController _logradouroController;
@@ -50,10 +51,17 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       if (!_cnpjFocusNode.hasFocus) {
         showDocumentValidation(
             context, _cnpjController.text, _tipoPessoa == 'FISICA');
-        if (_tipoPessoa == 'JURIDICA' &&
+        if (widget.client == null &&
+            _tipoPessoa == 'JURIDICA' &&
             isValidCnpj(_cnpjController.text)) {
           _lookupCnpj();
         }
+      }
+    });
+    _cepFocusNode = FocusNode();
+    _cepFocusNode.addListener(() {
+      if (!_cepFocusNode.hasFocus) {
+        _lookupCep();
       }
     });
     _ieController = TextEditingController(text: c?['CCOT_IE']?.toString() ?? '');
@@ -82,6 +90,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _fantasiaController.dispose();
     _cnpjController.dispose();
     _cnpjFocusNode.dispose();
+    _cepFocusNode.dispose();
     _ieController.dispose();
     _cepController.dispose();
     _logradouroController.dispose();
@@ -189,6 +198,71 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     }
   }
 
+  Future<void> _lookupCep() async {
+    final cep = _cepController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cep.length != 8) return;
+    final messenger = ScaffoldMessenger.of(context);
+    if (!await _hasInternet()) {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('Sem conexão com a internet')));
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: SizedBox(
+          height: 80,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Consultando CEP'),
+            ],
+          ),
+        ),
+      ),
+    );
+    try {
+      final url = Uri.parse('https://viacep.com.br/ws/' + cep + '/json/');
+      final resp = await http.get(url);
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body) as Map<String, dynamic>;
+        if (data['erro'] != true) {
+          setState(() {
+            _logradouroController.text =
+                (data['logradouro'] ?? _logradouroController.text).toString();
+            _bairroController.text =
+                (data['bairro'] ?? _bairroController.text).toString();
+            _municipioController.text =
+                (data['localidade'] ?? _municipioController.text).toString();
+            _ufController.text =
+                (data['uf'] ?? _ufController.text).toString();
+            _codigoIbgeController.text =
+                (data['ibge'] ?? _codigoIbgeController.text).toString();
+          });
+          messenger.showSnackBar(const SnackBar(
+              content: Text('Dados preenchidos a partir do CEP'),
+              backgroundColor: Colors.green));
+        } else {
+          messenger
+              .showSnackBar(const SnackBar(content: Text('CEP não encontrado')));
+        }
+      } else {
+        messenger.showSnackBar(
+            SnackBar(content: Text('Erro ao consultar CEP: ${resp.statusCode}')));
+      }
+    } catch (e) {
+      messenger
+          .showSnackBar(SnackBar(content: Text('Erro ao consultar CEP: $e')));
+    } finally {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
   void _submit() {
     final data = <String, dynamic>{
       'CCOT_NOME': _nameController.text.toUpperCase(),
@@ -286,7 +360,9 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _cepController,
+              focusNode: _cepFocusNode,
               decoration: const InputDecoration(labelText: 'CEP'),
+              keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _logradouroController,
