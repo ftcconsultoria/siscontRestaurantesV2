@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'product_list_screen.dart';
 import '../db/sync_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +8,7 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
+
   /// Builds the main menu with navigation options and sync actions.
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,7 +19,8 @@ class HomeScreen extends StatelessWidget {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(color: Colors.indigo),
-              child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
+              child: Text('Menu',
+                  style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             ListTile(
               leading: const Icon(Icons.dashboard),
@@ -34,7 +35,8 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ProductListScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const ProductListScreen()),
                 );
               },
             ),

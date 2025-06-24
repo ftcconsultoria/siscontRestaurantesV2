@@ -34,8 +34,11 @@ class SyncService {
         if (await file.exists()) {
           final fileName = url.split('/').last;
           final path = '$productPk/$fileName';
-          await supabase.storage.from('fotos-produtos').uploadBinary(path, await file.readAsBytes());
-          final publicUrl = supabase.storage.from('fotos-produtos').getPublicUrl(path);
+          await supabase.storage
+              .from('fotos-produtos')
+              .uploadBinary(path, await file.readAsBytes());
+          final publicUrl =
+              supabase.storage.from('fotos-produtos').getPublicUrl(path);
           await supabase.from('ESTQ_PRODUTO_FOTO').upsert({
             'EPRO_PK': productPk,
             'EPRO_FOTO_URL': publicUrl,
@@ -54,12 +57,14 @@ class SyncService {
     // pull remote products
     final remoteQuery = supabase
         .from('ESTQ_PRODUTO')
-        .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
+        .select(
+            'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
         .order('EPRO_DESCRICAO');
     final remote = companyPk != null
         ? await supabase
             .from('ESTQ_PRODUTO')
-            .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
+            .select(
+                'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
             .eq('CEMP_PK', companyPk)
             .order('EPRO_DESCRICAO')
         : await remoteQuery;

@@ -1,7 +1,6 @@
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'dart:io';
 
 class LocalDatabase {
   static Database? _db;
@@ -69,8 +68,8 @@ CREATE TABLE CADE_EMPRESA (
 ''');
         }
         if (oldVersion < 3) {
-          await db.execute(
-              'ALTER TABLE ESTQ_PRODUTO ADD COLUMN CEMP_PK INTEGER');
+          await db
+              .execute('ALTER TABLE ESTQ_PRODUTO ADD COLUMN CEMP_PK INTEGER');
         }
         if (oldVersion < 4) {
           await db.execute('''

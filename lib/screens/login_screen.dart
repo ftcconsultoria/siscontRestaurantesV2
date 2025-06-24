@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
   /// Creates the mutable state for this widget.
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -67,7 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+
   /// Builds the login screen with email and password inputs.
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -118,41 +121,43 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                    TextField(
-                      controller: _userController,
-                      decoration: const InputDecoration(
-                        labelText: 'Usuário',
-                        prefixIcon: Icon(Icons.mail_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Senha',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        TextField(
+                          controller: _userController,
+                          decoration: const InputDecoration(
+                            labelText: 'Usuário',
+                            prefixIcon: Icon(Icons.mail_outline),
+                            border: OutlineInputBorder(),
                           ),
                         ),
-                        child: const Text('Entrar'),
-                      ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Senha',
+                            prefixIcon: Icon(Icons.lock_outline),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _login,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Entrar'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
