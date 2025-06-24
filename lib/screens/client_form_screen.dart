@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/uppercase_input_formatter.dart';
 
 class ClientFormScreen extends StatefulWidget {
   final Map<String, dynamic>? client;
@@ -26,30 +27,35 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late final TextEditingController _municipioController;
   late final TextEditingController _codigoIbgeController;
   late final TextEditingController _ufController;
-  late final TextEditingController _tipoPessoaController;
+  late String _tipoPessoa;
 
   @override
   void initState() {
     super.initState();
     final c = widget.client;
-    _nameController = TextEditingController(text: c?['CCOT_NOME']?.toString() ?? '');
-    _fantasiaController =
-        TextEditingController(text: c?['CCOT_FANTASIA']?.toString() ?? '');
+    _nameController =
+        TextEditingController(text: c?['CCOT_NOME']?.toString().toUpperCase() ?? '');
+    _fantasiaController = TextEditingController(
+        text: c?['CCOT_FANTASIA']?.toString().toUpperCase() ?? '');
     _cnpjController = TextEditingController(text: c?['CCOT_CNPJ']?.toString() ?? '');
     _ieController = TextEditingController(text: c?['CCOT_IE']?.toString() ?? '');
     _cepController = TextEditingController(text: c?['CCOT_END_CEP']?.toString() ?? '');
     _logradouroController =
-        TextEditingController(text: c?['CCOT_END_NOME_LOGRADOURO']?.toString() ?? '');
-    _complementoController =
-        TextEditingController(text: c?['CCOT_END_COMPLEMENTO']?.toString() ?? '');
-    _quadraController = TextEditingController(text: c?['CCOT_END_QUADRA']?.toString() ?? '');
-    _loteController = TextEditingController(text: c?['CCOT_END_LOTE']?.toString() ?? '');
+        TextEditingController(text: c?['CCOT_END_NOME_LOGRADOURO']?.toString().toUpperCase() ?? '');
+    _complementoController = TextEditingController(
+        text: c?['CCOT_END_COMPLEMENTO']?.toString().toUpperCase() ?? '');
+    _quadraController =
+        TextEditingController(text: c?['CCOT_END_QUADRA']?.toString().toUpperCase() ?? '');
+    _loteController =
+        TextEditingController(text: c?['CCOT_END_LOTE']?.toString().toUpperCase() ?? '');
     _numeroController = TextEditingController(text: c?['CCOT_END_NUMERO']?.toString() ?? '');
-    _bairroController = TextEditingController(text: c?['CCOT_END_BAIRRO']?.toString() ?? '');
-    _municipioController = TextEditingController(text: c?['CCOT_END_MUNICIPIO']?.toString() ?? '');
+    _bairroController =
+        TextEditingController(text: c?['CCOT_END_BAIRRO']?.toString().toUpperCase() ?? '');
+    _municipioController =
+        TextEditingController(text: c?['CCOT_END_MUNICIPIO']?.toString().toUpperCase() ?? '');
     _codigoIbgeController = TextEditingController(text: c?['CCOT_END_CODIGO_IBGE']?.toString() ?? '');
     _ufController = TextEditingController(text: c?['CCOT_END_UF']?.toString() ?? '');
-    _tipoPessoaController = TextEditingController(text: c?['CCOT_TP_PESSOA']?.toString() ?? '');
+    _tipoPessoa = c?['CCOT_TP_PESSOA']?.toString() ?? 'JURIDICA';
   }
 
   @override
@@ -68,27 +74,26 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _municipioController.dispose();
     _codigoIbgeController.dispose();
     _ufController.dispose();
-    _tipoPessoaController.dispose();
     super.dispose();
   }
 
   void _submit() {
     final data = <String, dynamic>{
-      'CCOT_NOME': _nameController.text,
-      'CCOT_FANTASIA': _fantasiaController.text,
+      'CCOT_NOME': _nameController.text.toUpperCase(),
+      'CCOT_FANTASIA': _fantasiaController.text.toUpperCase(),
       'CCOT_CNPJ': _cnpjController.text,
       'CCOT_IE': _ieController.text,
       'CCOT_END_CEP': _cepController.text,
-      'CCOT_END_NOME_LOGRADOURO': _logradouroController.text,
-      'CCOT_END_COMPLEMENTO': _complementoController.text,
-      'CCOT_END_QUADRA': _quadraController.text,
-      'CCOT_END_LOTE': _loteController.text,
+      'CCOT_END_NOME_LOGRADOURO': _logradouroController.text.toUpperCase(),
+      'CCOT_END_COMPLEMENTO': _complementoController.text.toUpperCase(),
+      'CCOT_END_QUADRA': _quadraController.text.toUpperCase(),
+      'CCOT_END_LOTE': _loteController.text.toUpperCase(),
       'CCOT_END_NUMERO': _numeroController.text,
-      'CCOT_END_BAIRRO': _bairroController.text,
-      'CCOT_END_MUNICIPIO': _municipioController.text,
+      'CCOT_END_BAIRRO': _bairroController.text.toUpperCase(),
+      'CCOT_END_MUNICIPIO': _municipioController.text.toUpperCase(),
       'CCOT_END_CODIGO_IBGE': _codigoIbgeController.text,
       'CCOT_END_UF': _ufController.text,
-      'CCOT_TP_PESSOA': _tipoPessoaController.text,
+      'CCOT_TP_PESSOA': _tipoPessoa,
     };
     if (widget.client != null) {
       data['CCOT_PK'] = widget.client!['CCOT_PK'];
@@ -116,19 +121,24 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Nome'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _fantasiaController,
               decoration: const InputDecoration(labelText: 'Fantasia'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _cnpjController,
-              decoration: const InputDecoration(labelText: 'CNPJ'),
+              decoration: InputDecoration(labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ'),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _ieController,
               decoration: const InputDecoration(labelText: 'IE'),
+              enabled: _tipoPessoa != 'FISICA',
             ),
             const SizedBox(height: 16),
             TextField(
@@ -138,18 +148,26 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             TextField(
               controller: _logradouroController,
               decoration: const InputDecoration(labelText: 'Logradouro'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _complementoController,
               decoration: const InputDecoration(labelText: 'Complemento'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _quadraController,
               decoration: const InputDecoration(labelText: 'Quadra'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _loteController,
               decoration: const InputDecoration(labelText: 'Lote'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _numeroController,
@@ -158,10 +176,14 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             TextField(
               controller: _bairroController,
               decoration: const InputDecoration(labelText: 'Bairro'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _municipioController,
               decoration: const InputDecoration(labelText: 'Município'),
+              inputFormatters: [UpperCaseTextFormatter()],
+              textCapitalization: TextCapitalization.characters,
             ),
             TextField(
               controller: _codigoIbgeController,
@@ -171,9 +193,20 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               controller: _ufController,
               decoration: const InputDecoration(labelText: 'UF'),
             ),
-            TextField(
-              controller: _tipoPessoaController,
+            DropdownButtonFormField<String>(
+              value: _tipoPessoa,
               decoration: const InputDecoration(labelText: 'Tipo Pessoa'),
+              items: const [
+                DropdownMenuItem(value: 'FISICA', child: Text('FÍSICA')),
+                DropdownMenuItem(value: 'JURIDICA', child: Text('JURÍDICA')),
+              ],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() {
+                    _tipoPessoa = v;
+                  });
+                }
+              },
             ),
           ],
         ),
