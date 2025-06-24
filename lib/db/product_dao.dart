@@ -5,10 +5,33 @@ class ProductDao {
   /// Shortcut to obtain the opened database instance.
   Future<Database> get _db async => await LocalDatabase.instance;
 
-  /// Returns all products sorted by description.
+  /// Returns all products joined with their photos, sorted by description.
   Future<List<Map<String, dynamic>>> getAll() async {
     final db = await _db;
-    return await db.query('ESTQ_PRODUTO', orderBy: 'EPRO_DESCRICAO');
+    final rows = await db.rawQuery('''
+SELECT p.EPRO_PK, p.EPRO_DESCRICAO, p.EPRO_VLR_VAREJO,
+       p.EPRO_ESTQ_ATUAL, p.EPRO_COD_EAN,
+       f.EPRO_FOTO_PK AS FOTO_PK, f.EPRO_FOTO_URL
+FROM ESTQ_PRODUTO p
+LEFT JOIN ESTQ_PRODUTO_FOTO f ON p.EPRO_PK = f.EPRO_PK
+ORDER BY p.EPRO_DESCRICAO
+''');
+
+    return rows.map((r) {
+      final map = Map<String, dynamic>.from(r);
+      final fotoUrl = map.remove('EPRO_FOTO_URL');
+      final fotoPk = map.remove('FOTO_PK');
+      if (fotoUrl != null || fotoPk != null) {
+        map['ESTQ_PRODUTO_FOTO'] = [
+          {
+            'EPRO_FOTO_PK': fotoPk,
+            'EPRO_PK': map['EPRO_PK'],
+            'EPRO_FOTO_URL': fotoUrl,
+          }
+        ];
+      }
+      return map;
+    }).toList();
   }
 
   /// Inserts or updates a product record.
@@ -37,5 +60,48 @@ class ProductDao {
           conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
+  }
+
+  /// Retrieves the photo associated with the given product.
+  Future<Map<String, dynamic>?> getPhoto(int productPk) async {
+    final db = await _db;
+    final result = await db.query('ESTQ_PRODUTO_FOTO',
+        where: 'EPRO_PK = ?', whereArgs: [productPk], limit: 1);
+    if (result.isNotEmpty) return result.first;
+    return null;
+  }
+
+  /// Inserts or updates the photo record for a product.
+  Future<void> upsertPhoto(int productPk, String url) async {
+    final db = await _db;
+    await db.delete('ESTQ_PRODUTO_FOTO', where: 'EPRO_PK = ?', whereArgs: [productPk]);
+    await db.insert('ESTQ_PRODUTO_FOTO', {
+      'EPRO_PK': productPk,
+      'EPRO_FOTO_URL': url,
+    });
+  }
+
+  /// Returns all photo records.
+  Future<List<Map<String, dynamic>>> getAllPhotos() async {
+    final db = await _db;
+    return await db.query('ESTQ_PRODUTO_FOTO');
+  }
+
+  /// Replaces all existing photos with the provided list.
+  Future<void> replaceAllPhotos(List<Map<String, dynamic>> photos) async {
+    final db = await _db;
+    final batch = db.batch();
+    batch.delete('ESTQ_PRODUTO_FOTO');
+    for (final p in photos) {
+      batch.insert('ESTQ_PRODUTO_FOTO', p,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Deletes the photo associated with the given product.
+  Future<void> deletePhoto(int productPk) async {
+    final db = await _db;
+    await db.delete('ESTQ_PRODUTO_FOTO', where: 'EPRO_PK = ?', whereArgs: [productPk]);
   }
 }
