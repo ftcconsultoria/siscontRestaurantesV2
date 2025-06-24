@@ -23,6 +23,9 @@ at `sql/create_estq_produto_foto.sql` contains the statement used to create the
 references the existing `ESTQ_PRODUTO` table and generates `EPRO_FOTO_PK`
 automatically.
 
+A separate SQL script at `sql/create_cade_empresa.sql` defines the
+`CADE_EMPRESA` table used for storing company information.
+
 Product photos are captured directly from the product list. When you tap the
 camera icon for a product, the app uses the device camera to take a picture,
 uploads the file to the Supabase Storage bucket `fotos-produtos` and saves the
