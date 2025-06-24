@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'product_list_screen.dart';
 import 'client_list_screen.dart';
-import '../db/sync_service.dart';
+import 'sync_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 
@@ -55,18 +55,12 @@ class HomeScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.sync),
               title: const Text('Sincronizar'),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(context);
-                final messenger = ScaffoldMessenger.of(context);
-                messenger.showSnackBar(
-                    const SnackBar(content: Text('Sincronizando...')));
-                try {
-                  await SyncService().sync();
-                  messenger.showSnackBar(
-                      const SnackBar(content: Text('Sincronização concluída')));
-                } catch (e) {
-                  messenger.showSnackBar(SnackBar(content: Text('Erro: $e')));
-                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SyncScreen()),
+                );
               },
             ),
             ListTile(
