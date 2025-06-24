@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/uppercase_input_formatter.dart';
 import '../utils/validators.dart';
@@ -93,12 +95,41 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     super.dispose();
   }
 
+  Future<bool> _hasInternet() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException {
+      return false;
+    }
+  }
+
   Future<void> _lookupCnpj() async {
     final cnpj = _cnpjController.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (cnpj.isEmpty) return;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-        const SnackBar(content: Text('Consultando CNPJ...')));
+    if (!await _hasInternet()) {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('Sem conexão com a internet')));
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: SizedBox(
+          height: 80,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Aguardando dados da Receita'),
+            ],
+          ),
+        ),
+      ),
+    );
     try {
       final url = Uri.parse('https://publica.cnpj.ws/cnpj/' + cnpj);
       final resp = await http.get(url);
@@ -150,6 +181,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     } catch (e) {
       messenger
           .showSnackBar(SnackBar(content: Text('Erro ao consultar CNPJ: $e')));
+    } finally {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -211,11 +246,13 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               focusNode: _cnpjFocusNode,
               decoration: InputDecoration(labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ'),
               keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
             TextField(
               controller: _ieController,
               decoration: const InputDecoration(labelText: 'IE'),
               enabled: _tipoPessoa != 'FISICA',
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
             const SizedBox(height: 16),
             TextField(
