@@ -33,7 +33,10 @@ A separate SQL script at `sql/create_cade_empresa.sql` defines the
 The file `sql/create_cade_usuario.sql` creates the `CADE_USUARIO` table
 which stores application users. Each user belongs to a company via the
 `CEMP_PK` foreign key. Login credentials will be downloaded from Supabase
-after the company is set up and validated against this table.
+after the company is set up and validated against this table. When the
+configuration screen loads a company by CNPJ it now also retrieves all
+records from this table filtered by the company's `CEMP_PK` and stores
+them locally.
 
 Products now include a `CEMP_PK` foreign key referencing `CADE_EMPRESA`.
 When synchronizing with Supabase the app filters products by the

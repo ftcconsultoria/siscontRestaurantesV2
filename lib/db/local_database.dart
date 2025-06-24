@@ -19,7 +19,7 @@ class LocalDatabase {
     final path = join(documentsDir.path, 'erp_mobile.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -47,6 +47,14 @@ CREATE TABLE CADE_EMPRESA (
   CEMP_IE TEXT
 )
 ''');
+        await db.execute('''
+CREATE TABLE CADE_USUARIO (
+  CUSU_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CUSU_USUARIO TEXT NOT NULL,
+  CUSU_SENHA TEXT,
+  CEMP_PK INTEGER
+)
+''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -63,6 +71,16 @@ CREATE TABLE CADE_EMPRESA (
         if (oldVersion < 3) {
           await db.execute(
               'ALTER TABLE ESTQ_PRODUTO ADD COLUMN CEMP_PK INTEGER');
+        }
+        if (oldVersion < 4) {
+          await db.execute('''
+CREATE TABLE CADE_USUARIO (
+  CUSU_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CUSU_USUARIO TEXT NOT NULL,
+  CUSU_SENHA TEXT,
+  CEMP_PK INTEGER
+)
+''');
         }
       },
     );
