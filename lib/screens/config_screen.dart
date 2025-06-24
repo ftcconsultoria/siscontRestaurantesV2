@@ -51,11 +51,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
             _companyName = result['CEMP_NOME_FANTASIA'] as String?;
           });
         }
-        messenger
-            .showSnackBar(const SnackBar(content: Text('Empresa carregada')));
+        messenger.showSnackBar(const SnackBar(
+            content: Text('Empresa configurada corretamente'),
+            backgroundColor: Colors.green));
       } else {
-        messenger
-            .showSnackBar(const SnackBar(content: Text('Empresa não encontrada')));
+        messenger.showSnackBar(const SnackBar(
+            content: Text('Empresa não encontrada'),
+            backgroundColor: Colors.red));
       }
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Erro: $e')));
@@ -80,7 +82,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
             if (_companyName != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Text('Empresa: $_companyName'),
+                child: Text('Empresa: $_companyName',
+                    style: TextStyle(color: Colors.green)),
               ),
             const SizedBox(height: 8),
             ElevatedButton(
