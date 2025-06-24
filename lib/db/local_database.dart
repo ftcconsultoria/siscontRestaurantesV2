@@ -19,7 +19,7 @@ class LocalDatabase {
     final path = join(documentsDir.path, 'erp_mobile.db');
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -27,7 +27,8 @@ CREATE TABLE ESTQ_PRODUTO (
   EPRO_DESCRICAO TEXT,
   EPRO_VLR_VAREJO REAL,
   EPRO_ESTQ_ATUAL REAL,
-  EPRO_COD_EAN TEXT
+  EPRO_COD_EAN TEXT,
+  CEMP_PK INTEGER
 )
 ''');
         await db.execute('''
@@ -58,6 +59,10 @@ CREATE TABLE CADE_EMPRESA (
   CEMP_IE TEXT
 )
 ''');
+        }
+        if (oldVersion < 3) {
+          await db.execute(
+              'ALTER TABLE ESTQ_PRODUTO ADD COLUMN CEMP_PK INTEGER');
         }
       },
     );

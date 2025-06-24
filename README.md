@@ -23,8 +23,17 @@ at `sql/create_estq_produto_foto.sql` contains the statement used to create the
 references the existing `ESTQ_PRODUTO` table and generates `EPRO_FOTO_PK`
 automatically.
 
+The script `sql/alter_estq_produto_add_cemp_pk.sql` adds the `CEMP_PK`
+foreign key to `ESTQ_PRODUTO`, linking each product to a company in
+`CADE_EMPRESA`.
+
 A separate SQL script at `sql/create_cade_empresa.sql` defines the
 `CADE_EMPRESA` table used for storing company information.
+
+Products now include a `CEMP_PK` foreign key referencing `CADE_EMPRESA`.
+When synchronizing with Supabase the app filters products by the
+company saved locally so that only records for the active company are
+fetched.
 
 Product photos are captured directly from the product list. When you tap the
 camera icon for a product, the app uses the device camera to take a picture,

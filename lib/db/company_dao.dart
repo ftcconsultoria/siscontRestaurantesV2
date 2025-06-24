@@ -26,4 +26,12 @@ class CompanyDao {
     final db = await _db;
     await db.delete('CADE_EMPRESA', where: 'CEMP_PK = ?', whereArgs: [id]);
   }
+
+  /// Returns the first company record or null if none exist.
+  Future<Map<String, dynamic>?> getFirst() async {
+    final db = await _db;
+    final result = await db.query('CADE_EMPRESA', limit: 1);
+    if (result.isNotEmpty) return result.first;
+    return null;
+  }
 }
