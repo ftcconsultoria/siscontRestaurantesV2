@@ -1,0 +1,95 @@
+import 'package:flutter/material.dart';
+import '../db/company_dao.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class ConfigScreen extends StatefulWidget {
+  const ConfigScreen({super.key});
+
+  @override
+  State<ConfigScreen> createState() => _ConfigScreenState();
+}
+
+class _ConfigScreenState extends State<ConfigScreen> {
+  final TextEditingController _cnpjController = TextEditingController();
+  final CompanyDao _companyDao = CompanyDao();
+  String? _companyName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocalCompany();
+  }
+
+  Future<void> _loadLocalCompany() async {
+    final c = await _companyDao.getFirst();
+    if (c != null) {
+      setState(() {
+        _companyName = c['CEMP_NOME_FANTASIA'] as String?;
+        _cnpjController.text = c['CEMP_CNPJ']?.toString() ?? '';
+      });
+    }
+  }
+
+  Future<void> _fetchCompany() async {
+    final cnpj = _cnpjController.text.trim();
+    if (cnpj.isEmpty) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+        const SnackBar(content: Text('Buscando empresa...')));
+    try {
+      final supabase = Supabase.instance.client;
+      final result = await supabase
+          .from('CADE_EMPRESA')
+          .select(
+              'CEMP_PK, CEMP_NOME_FANTASIA, CEMP_RAZAO_SOCIAL, CEMP_CNPJ, CEMP_IE')
+          .eq('CEMP_CNPJ', cnpj)
+          .maybeSingle();
+      if (result != null) {
+        await _companyDao.setCompany(result);
+        if (mounted) {
+          setState(() {
+            _companyName = result['CEMP_NOME_FANTASIA'] as String?;
+          });
+        }
+        messenger
+            .showSnackBar(const SnackBar(content: Text('Empresa carregada')));
+      } else {
+        messenger
+            .showSnackBar(const SnackBar(content: Text('Empresa não encontrada')));
+      }
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Erro: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Configuração')),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Text('Configuração da Empresa',
+                style: TextStyle(fontSize: 20)),
+            TextField(
+              controller: _cnpjController,
+              decoration: const InputDecoration(labelText: 'CNPJ'),
+              keyboardType: TextInputType.number,
+            ),
+            if (_companyName != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text('Empresa: $_companyName'),
+              ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _fetchCompany,
+              child: const Text('Carregar Empresa'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
