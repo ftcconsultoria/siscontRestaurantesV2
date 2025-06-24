@@ -57,7 +57,11 @@ class SyncService {
         .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
         .order('EPRO_DESCRICAO');
     final remote = companyPk != null
-        ? await remoteQuery.eq('CEMP_PK', companyPk)
+        ? await supabase
+            .from('ESTQ_PRODUTO')
+            .select('EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
+            .eq('CEMP_PK', companyPk)
+            .order('EPRO_DESCRICAO')
         : await remoteQuery;
     final list = List<Map<String, dynamic>>.from(remote);
     await _dao.replaceAll(list);
