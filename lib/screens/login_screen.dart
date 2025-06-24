@@ -80,7 +80,13 @@ class _LoginScreenState extends State<LoginScreen> {
               if (_companyName != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 32.0),
-                  child: Text('Empresa: $_companyName'),
+                  child: Text(
+                    'Empresa: $_companyName',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.lightBlue,
+                    ),
+                  ),
                 ),
             ],
           ),
