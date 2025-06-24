@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/login_screen.dart';
 
+/// Initializes Supabase and starts the application.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
+  /// Builds the root widget and sets up the app theme and initial screen.
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ERP Mobile',

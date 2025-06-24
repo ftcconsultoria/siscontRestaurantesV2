@@ -13,6 +13,7 @@ class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
   @override
+  /// Creates the mutable state for this screen.
   State<ProductListScreen> createState() => _ProductListScreenState();
 }
 
@@ -25,17 +26,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final ProductDao _dao = ProductDao();
 
   @override
+  /// Initializes the state and loads the initial product list.
   void initState() {
     super.initState();
     _productsFuture = _fetchProducts();
   }
 
+  /// Retrieves all products from the local database.
   Future<List<Map<String, dynamic>>> _fetchProducts() async {
     final list = await _dao.getAll();
     _products = list;
     return list;
   }
 
+  /// Reloads the product list and updates the UI.
   Future<void> _refreshProducts() async {
     final list = await _fetchProducts();
     setState(() {
@@ -43,16 +47,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
     });
   }
 
+  /// Inserts or updates a product, then refreshes the list.
   Future<void> _addOrUpdateProduct(Map<String, dynamic> data) async {
     await _dao.insertOrUpdate(data);
     await _refreshProducts();
   }
 
+  /// Deletes the given product and refreshes the list.
   Future<void> _deleteProduct(int id) async {
     await _dao.delete(id);
     await _refreshProducts();
   }
 
+  /// Asks for confirmation before deleting a product.
   Future<void> _confirmDeleteProduct(int id) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -76,6 +83,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
   }
 
+  /// Compresses an image to roughly the target size in bytes.
   Future<Uint8List> _compressImage(Uint8List bytes,
       {int targetBytes = 100 * 1024}) async {
     int quality = 100;
@@ -87,6 +95,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return result;
   }
 
+  /// Captures a photo for a product and uploads it to Supabase Storage.
   Future<void> _takePhoto(int productPk) async {
     final image = await _picker.pickImage(source: ImageSource.camera);
     if (image == null) return;
@@ -130,6 +139,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     await _refreshProducts();
   }
 
+  /// Displays the product photo in a dialog.
   void _showPhoto(String url) {
     showDialog(
       context: context,
@@ -141,6 +151,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  /// Opens the form dialog to create or edit a product.
   void _showProductForm([Map<String, dynamic>? product]) {
     showDialog(
       context: context,
@@ -152,6 +163,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   @override
+  /// Builds the screen with search, product list and actions.
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lista de Produtos')),

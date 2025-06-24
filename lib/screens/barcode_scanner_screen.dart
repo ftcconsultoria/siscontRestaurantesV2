@@ -5,12 +5,14 @@ class BarcodeScannerScreen extends StatefulWidget {
   const BarcodeScannerScreen({super.key});
 
   @override
+  /// Creates the mutable state for the barcode scanner.
   State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
 }
 
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   String? _scannedValue;
 
+  /// Handles detected barcodes and stores the latest value.
   void _onDetect(BarcodeCapture capture) {
     final value = capture.barcodes.first.rawValue;
     if (value != null && value != _scannedValue) {
@@ -21,6 +23,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   @override
+  /// Builds the camera view and button to return the scanned code.
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Escanear Código')),

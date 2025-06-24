@@ -3,6 +3,7 @@ import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+  /// Creates the mutable state for this widget.
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -11,6 +12,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  /// Handles the login action and navigates to the home screen.
   void _login() {
     Navigator.pushReplacement(
       context,
@@ -19,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  /// Builds the login screen with email and password inputs.
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
