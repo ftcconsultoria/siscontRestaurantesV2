@@ -95,19 +95,23 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             return SafeArea(
               child: Column(
                 children: [
+                  const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DropdownButton<String>(
-                          value: searchType,
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'Nome', child: Text('Nome')),
-                            DropdownMenuItem(
-                                value: 'CPF/CNPJ', child: Text('CPF/CNPJ')),
-                          ],
-                          onChanged: (v) => setState(() => searchType = v ?? 'Nome'),
+                        SizedBox(
+                          width: 140,
+                          child: DropdownButtonFormField<String>(
+                            value: searchType,
+                            decoration: const InputDecoration(labelText: 'Tipo'),
+                            items: const [
+                              DropdownMenuItem(value: 'Nome', child: Text('Nome')),
+                              DropdownMenuItem(value: 'CPF/CNPJ', child: Text('CPF/CNPJ')),
+                            ],
+                            onChanged: (v) => setState(() => searchType = v ?? 'Nome'),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
