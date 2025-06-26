@@ -107,9 +107,9 @@ class SyncService {
     final remote = companyPk != null
         ? await supabase
             .from('ESTQ_PRODUTO')
+            .eq('CEMP_PK', companyPk)
             .select(
                 'EPRO_PK, EPRO_DESCRICAO, EPRO_VLR_VAREJO, EPRO_ESTQ_ATUAL, EPRO_COD_EAN, CEMP_PK')
-            .eq('CEMP_PK', companyPk)
             .order('EPRO_DESCRICAO')
         : await remoteQuery;
     final list = List<Map<String, dynamic>>.from(remote);
@@ -121,8 +121,8 @@ class SyncService {
       final pkList = productPks.join(',');
       final remotePhotos = await supabase
           .from('ESTQ_PRODUTO_FOTO')
-          .select('EPRO_FOTO_PK, EPRO_PK, EPRO_FOTO_URL')
-          .filter('EPRO_PK', 'in', '($pkList)');
+          .filter('EPRO_PK', 'in', '($pkList)')
+          .select('EPRO_FOTO_PK, EPRO_PK, EPRO_FOTO_URL');
       final photos = List<Map<String, dynamic>>.from(remotePhotos);
       await _dao.replaceAllPhotos(photos);
     } else {
@@ -132,11 +132,12 @@ class SyncService {
     // pull remote orders
     final orderQuery = supabase
         .from('PEDI_DOCUMENTOS')
-        .select('PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK')
         .order('PDOC_DT_EMISSAO', ascending: false);
-    final remoteOrders = companyPk != null
-        ? await orderQuery.eq('CEMP_PK', companyPk)
-        : await orderQuery;
+    final builder = companyPk != null
+        ? orderQuery.eq('CEMP_PK', companyPk)
+        : orderQuery;
+    final remoteOrders = await builder.select(
+        'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK');
     final orders = List<Map<String, dynamic>>.from(remoteOrders);
     await _orderDao.replaceAll(orders);
 
@@ -146,8 +147,8 @@ class SyncService {
       final pkList = orderPks.join(',');
       final remoteItems = await supabase
           .from('PEDI_ITENS')
-          .select('PITEN_PK, PDOC_PK, EPRO_PK, PITEN_QTD, PITEN_VLR_UNITARIO, PITEN_VLR_TOTAL')
-          .filter('PDOC_PK', 'in', '($pkList)');
+          .filter('PDOC_PK', 'in', '($pkList)')
+          .select('PITEN_PK, PDOC_PK, EPRO_PK, PITEN_QTD, PITEN_VLR_UNITARIO, PITEN_VLR_TOTAL');
       final items = List<Map<String, dynamic>>.from(remoteItems);
       await _itemDao.replaceAll(items);
     } else {
