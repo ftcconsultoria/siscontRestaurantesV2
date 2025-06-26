@@ -330,86 +330,139 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                 }
               },
             ),
+            const SizedBox(height: 8),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Nome'),
               inputFormatters: [UpperCaseTextFormatter()],
               textCapitalization: TextCapitalization.characters,
             ),
+            const SizedBox(height: 8),
             TextField(
               controller: _fantasiaController,
               decoration: const InputDecoration(labelText: 'Fantasia'),
               inputFormatters: [UpperCaseTextFormatter()],
               textCapitalization: TextCapitalization.characters,
             ),
-            TextField(
-              controller: _cnpjController,
-              focusNode: _cnpjFocusNode,
-              decoration: InputDecoration(
-                  labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ'),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                CpfCnpjInputFormatter(isCpf: _tipoPessoa == 'FISICA')
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _cnpjController,
+                    focusNode: _cnpjFocusNode,
+                    decoration: InputDecoration(
+                        labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ'),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      CpfCnpjInputFormatter(isCpf: _tipoPessoa == 'FISICA')
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _ieController,
+                    decoration: const InputDecoration(labelText: 'IE'),
+                    enabled: _tipoPessoa != 'FISICA',
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ),
               ],
             ),
-            TextField(
-              controller: _ieController,
-              decoration: const InputDecoration(labelText: 'IE'),
-              enabled: _tipoPessoa != 'FISICA',
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _cepController,
-              focusNode: _cepFocusNode,
-              decoration: const InputDecoration(labelText: 'CEP'),
-              keyboardType: TextInputType.number,
-              inputFormatters: [CepInputFormatter()],
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _cepController,
+                    focusNode: _cepFocusNode,
+                    decoration: const InputDecoration(labelText: 'CEP'),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [CepInputFormatter()],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _numeroController,
+                    decoration: const InputDecoration(labelText: 'Número'),
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 8),
             TextField(
               controller: _logradouroController,
               decoration: const InputDecoration(labelText: 'Logradouro'),
               inputFormatters: [UpperCaseTextFormatter()],
               textCapitalization: TextCapitalization.characters,
             ),
-            TextField(
-              controller: _complementoController,
-              decoration: const InputDecoration(labelText: 'Complemento'),
-              inputFormatters: [UpperCaseTextFormatter()],
-              textCapitalization: TextCapitalization.characters,
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _complementoController,
+                    decoration: const InputDecoration(labelText: 'Complemento'),
+                    inputFormatters: [UpperCaseTextFormatter()],
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _quadraController,
+                    decoration: const InputDecoration(labelText: 'Quadra'),
+                    inputFormatters: [UpperCaseTextFormatter()],
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _quadraController,
-              decoration: const InputDecoration(labelText: 'Quadra'),
-              inputFormatters: [UpperCaseTextFormatter()],
-              textCapitalization: TextCapitalization.characters,
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _loteController,
+                    decoration: const InputDecoration(labelText: 'Lote'),
+                    inputFormatters: [UpperCaseTextFormatter()],
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _bairroController,
+                    decoration: const InputDecoration(labelText: 'Bairro'),
+                    inputFormatters: [UpperCaseTextFormatter()],
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _loteController,
-              decoration: const InputDecoration(labelText: 'Lote'),
-              inputFormatters: [UpperCaseTextFormatter()],
-              textCapitalization: TextCapitalization.characters,
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _municipioController,
+                    decoration: const InputDecoration(labelText: 'Município'),
+                    inputFormatters: [UpperCaseTextFormatter()],
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _codigoIbgeController,
+                    decoration: const InputDecoration(labelText: 'Código IBGE'),
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _numeroController,
-              decoration: const InputDecoration(labelText: 'Número'),
-            ),
-            TextField(
-              controller: _bairroController,
-              decoration: const InputDecoration(labelText: 'Bairro'),
-              inputFormatters: [UpperCaseTextFormatter()],
-              textCapitalization: TextCapitalization.characters,
-            ),
-            TextField(
-              controller: _municipioController,
-              decoration: const InputDecoration(labelText: 'Município'),
-              inputFormatters: [UpperCaseTextFormatter()],
-              textCapitalization: TextCapitalization.characters,
-            ),
-            TextField(
-              controller: _codigoIbgeController,
-              decoration: const InputDecoration(labelText: 'Código IBGE'),
-            ),
+            const SizedBox(height: 8),
             TextField(
               controller: _ufController,
               decoration: const InputDecoration(labelText: 'UF'),
