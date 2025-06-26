@@ -23,7 +23,7 @@ SELECT d.PDOC_PK, d.PDOC_DT_EMISSAO, d.PDOC_VLR_TOTAL,
 FROM PEDI_DOCUMENTOS d
 LEFT JOIN CADE_CONTATO c ON d.CCOT_PK = c.CCOT_PK
 ${companyPk != null ? 'WHERE d.CEMP_PK = ?' : ''}
-ORDER BY d.PDOC_DT_EMISSAO DESC
+ORDER BY d.PDOC_PK DESC
 ''', companyPk != null ? [companyPk] : null);
     return rows;
   }

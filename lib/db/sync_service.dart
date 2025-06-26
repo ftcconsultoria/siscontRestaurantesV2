@@ -137,11 +137,11 @@ class SyncService {
             .select(
                 'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK')
             .eq('CEMP_PK', companyPk)
-            .order('PDOC_DT_EMISSAO', ascending: false)
+            .order('PDOC_PK', ascending: false)
         : baseQuery
             .select(
                 'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK')
-            .order('PDOC_DT_EMISSAO', ascending: false));
+            .order('PDOC_PK', ascending: false));
 
     final orders = List<Map<String, dynamic>>.from(remoteOrders);
     await _orderDao.replaceAll(orders);
