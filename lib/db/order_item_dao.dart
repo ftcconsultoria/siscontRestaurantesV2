@@ -21,8 +21,13 @@ WHERE i.PDOC_PK = ?
     final batch = db.batch();
     batch.delete('PEDI_ITENS', where: 'PDOC_PK = ?', whereArgs: [orderPk]);
     for (final item in items) {
-      final data = Map<String, dynamic>.from(item)
-        ..['PDOC_PK'] = orderPk;
+      final data = <String, dynamic>{
+        'EPRO_PK': item['EPRO_PK'],
+        'PITEN_QTD': item['PITEN_QTD'],
+        'PITEN_VLR_UNITARIO': item['PITEN_VLR_UNITARIO'],
+        'PITEN_VLR_TOTAL': item['PITEN_VLR_TOTAL'],
+        'PDOC_PK': orderPk,
+      };
       batch.insert('PEDI_ITENS', data);
     }
     await batch.commit(noResult: true);
