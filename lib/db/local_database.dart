@@ -31,7 +31,7 @@ class LocalDatabase {
     final dbPath = await path;
     return openDatabase(
       dbPath,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -88,6 +88,17 @@ CREATE TABLE CADE_CONTATO (
   CCOT_TP_PESSOA TEXT
 )
 ''');
+        await db.execute('''
+CREATE TABLE PEDI_DOCUMENTOS (
+  PDOC_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CEMP_PK INTEGER NOT NULL,
+  PDOC_DT_EMISSAO TEXT,
+  PDOC_VLR_TOTAL REAL,
+  CCOT_PK INTEGER,
+  FOREIGN KEY(CCOT_PK) REFERENCES CADE_CONTATO(CCOT_PK),
+  FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
+)
+''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -134,9 +145,21 @@ CREATE TABLE CADE_CONTATO (
   CCOT_END_CODIGO_IBGE TEXT,
   CCOT_END_UF TEXT,
   CEMP_PK INTEGER,
-  CCOT_TP_PESSOA TEXT
+          CCOT_TP_PESSOA TEXT
 )
 ''');
+        }
+        if (oldVersion < 6) {
+          await db.execute('''
+CREATE TABLE PEDI_DOCUMENTOS (
+  PDOC_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CEMP_PK INTEGER NOT NULL,
+  PDOC_DT_EMISSAO TEXT,
+  PDOC_VLR_TOTAL REAL,
+  CCOT_PK INTEGER,
+  FOREIGN KEY(CCOT_PK) REFERENCES CADE_CONTATO(CCOT_PK),
+  FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
+)''');
         }
       },
     );

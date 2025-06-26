@@ -1,0 +1,46 @@
+import 'package:sqflite/sqflite.dart';
+import 'local_database.dart';
+import 'company_dao.dart';
+
+class OrderDao {
+  Future<Database> get _db async => await LocalDatabase.instance;
+
+  final CompanyDao _companyDao = CompanyDao();
+
+  Future<int?> _getCompanyPk() async {
+    final company = await _companyDao.getFirst();
+    return company?['CEMP_PK'] as int?;
+  }
+
+  Future<List<Map<String, dynamic>>> getAll() async {
+    final db = await _db;
+    final companyPk = await _getCompanyPk();
+    final rows = await db.rawQuery('''
+SELECT d.PDOC_PK, d.PDOC_DT_EMISSAO, d.PDOC_VLR_TOTAL,
+       d.CCOT_PK, c.CCOT_NOME
+FROM PEDI_DOCUMENTOS d
+LEFT JOIN CADE_CONTATO c ON d.CCOT_PK = c.CCOT_PK
+${companyPk != null ? 'WHERE d.CEMP_PK = ?' : ''}
+ORDER BY d.PDOC_DT_EMISSAO DESC
+''', companyPk != null ? [companyPk] : null);
+    return rows;
+  }
+
+  Future<void> insertOrUpdate(Map<String, dynamic> data) async {
+    final db = await _db;
+    final companyPk = data['CEMP_PK'] ?? await _getCompanyPk();
+    if (companyPk != null) {
+      data['CEMP_PK'] = companyPk;
+    }
+    await db.insert(
+      'PEDI_DOCUMENTOS',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> delete(int id) async {
+    final db = await _db;
+    await db.delete('PEDI_DOCUMENTOS', where: 'PDOC_PK = ?', whereArgs: [id]);
+  }
+}
