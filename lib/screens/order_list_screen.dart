@@ -121,8 +121,13 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Cliente: ${o['CCOT_NOME'] ?? ''}'),
-                      Text('Data: $date'),
-                      Text('Valor: $value'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text('Data: $date')),
+                          Text('Valor: $value'),
+                        ],
+                      ),
                     ],
                   ),
                   trailing: Row(
