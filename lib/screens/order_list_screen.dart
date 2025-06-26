@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../db/order_dao.dart';
+import '../db/order_item_dao.dart';
 import 'order_form_screen.dart';
 
 class OrderListScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class OrderListScreen extends StatefulWidget {
 
 class _OrderListScreenState extends State<OrderListScreen> {
   final OrderDao _dao = OrderDao();
+  final OrderItemDao _itemDao = OrderItemDao();
   late Future<List<Map<String, dynamic>>> _ordersFuture;
 
   @override
@@ -32,8 +34,10 @@ class _OrderListScreenState extends State<OrderListScreen> {
     });
   }
 
-  Future<void> _addOrUpdate(Map<String, dynamic> data) async {
-    await _dao.insertOrUpdate(data);
+  Future<void> _addOrUpdate(
+      Map<String, dynamic> order, List<Map<String, dynamic>> items) async {
+    final id = await _dao.insertOrUpdate(order);
+    await _itemDao.replaceItems(id, items);
     await _refresh();
   }
 

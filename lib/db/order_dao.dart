@@ -2,6 +2,8 @@ import 'package:sqflite/sqflite.dart';
 import 'local_database.dart';
 import 'company_dao.dart';
 
+import 'order_item_dao.dart';
+
 class OrderDao {
   Future<Database> get _db async => await LocalDatabase.instance;
 
@@ -26,21 +28,25 @@ ORDER BY d.PDOC_DT_EMISSAO DESC
     return rows;
   }
 
-  Future<void> insertOrUpdate(Map<String, dynamic> data) async {
+  final OrderItemDao _itemDao = OrderItemDao();
+
+  Future<int> insertOrUpdate(Map<String, dynamic> data) async {
     final db = await _db;
     final companyPk = data['CEMP_PK'] ?? await _getCompanyPk();
     if (companyPk != null) {
       data['CEMP_PK'] = companyPk;
     }
-    await db.insert(
+    final id = await db.insert(
       'PEDI_DOCUMENTOS',
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    return id;
   }
 
   Future<void> delete(int id) async {
     final db = await _db;
+    await _itemDao.deleteByOrder(id);
     await db.delete('PEDI_DOCUMENTOS', where: 'PDOC_PK = ?', whereArgs: [id]);
   }
 }

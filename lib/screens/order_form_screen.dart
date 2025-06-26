@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../db/contact_dao.dart';
+import '../db/product_dao.dart';
+import '../db/order_item_dao.dart';
 
 class OrderFormScreen extends StatefulWidget {
   final Map<String, dynamic>? order;
-  final ValueChanged<Map<String, dynamic>> onSave;
+  final void Function(Map<String, dynamic>, List<Map<String, dynamic>>) onSave;
 
   const OrderFormScreen({Key? key, this.order, required this.onSave})
       : super(key: key);
@@ -19,13 +21,16 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   late TextEditingController _clientController;
   int? _contactPk;
   final ContactDao _contactDao = ContactDao();
+  final ProductDao _productDao = ProductDao();
+  final OrderItemDao _itemDao = OrderItemDao();
   List<Map<String, dynamic>> _contacts = [];
+  List<Map<String, dynamic>> _products = [];
+  List<Map<String, dynamic>> _items = [];
 
   @override
   void initState() {
     super.initState();
-    _valueController = TextEditingController(
-        text: widget.order?['PDOC_VLR_TOTAL']?.toString() ?? '');
+    _valueController = TextEditingController();
     _clientController = TextEditingController();
     final dateStr = widget.order?['PDOC_DT_EMISSAO']?.toString();
     _date = dateStr != null && dateStr.isNotEmpty
@@ -33,6 +38,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         : DateTime.now();
     _contactPk = widget.order?['CCOT_PK'] as int?;
     _loadContacts();
+    _loadProducts();
+    _loadItems();
   }
 
   Future<void> _loadContacts() async {
@@ -45,6 +52,27 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         _clientController.text = current['CCOT_NOME'] ?? '';
       }
     });
+  }
+
+  Future<void> _loadProducts() async {
+    final list = await _productDao.getAll();
+    setState(() => _products = list);
+  }
+
+  Future<void> _loadItems() async {
+    if (widget.order != null) {
+      final list = await _itemDao.getByOrder(widget.order!['PDOC_PK']);
+      setState(() {
+        _items = list;
+      });
+    }
+    _updateTotal();
+  }
+
+  void _updateTotal() {
+    final total = _items.fold<double>(0,
+        (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
+    _valueController.text = total.toStringAsFixed(2);
   }
 
   @override
@@ -158,17 +186,119 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     }
   }
 
+  Future<Map<String, dynamic>?> _showProductSearch() async {
+    if (_products.isEmpty) await _loadProducts();
+    String query = '';
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final filtered = _products.where((p) {
+              final name = (p['EPRO_DESCRICAO'] ?? '').toString().toLowerCase();
+              if (query.isEmpty) return true;
+              return name.contains(query.toLowerCase());
+            }).toList();
+            return SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Pesquisar',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (v) => setState(() => query = v),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final p = filtered[index];
+                        return ListTile(
+                          title: Text(p['EPRO_DESCRICAO'] ?? ''),
+                          onTap: () => Navigator.pop(context, p),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+    return selected;
+  }
+
+  Future<void> _addItem() async {
+    final product = await _showProductSearch();
+    if (product == null) return;
+    final qtyController = TextEditingController(text: '1');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(product['EPRO_DESCRICAO'] ?? ''),
+        content: TextField(
+          controller: qtyController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Quantidade'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Adicionar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      final qty = double.tryParse(qtyController.text.replaceAll(',', '.')) ?? 0;
+      final unit = (product['EPRO_VLR_VAREJO'] as num? ?? 0).toDouble();
+      final total = qty * unit;
+      setState(() {
+        _items.add({
+          'EPRO_PK': product['EPRO_PK'],
+          'PITEN_QTD': qty,
+          'PITEN_VLR_UNITARIO': unit,
+          'PITEN_VLR_TOTAL': total,
+          'EPRO_DESCRICAO': product['EPRO_DESCRICAO'],
+        });
+        _updateTotal();
+      });
+    }
+  }
+
+  void _removeItem(int index) {
+    setState(() {
+      _items.removeAt(index);
+      _updateTotal();
+    });
+  }
+
   void _submit() {
+    final total = _items.fold<double>(0,
+        (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
     final data = <String, dynamic>{
       'PDOC_DT_EMISSAO': DateFormat('yyyy-MM-dd').format(_date),
-      'PDOC_VLR_TOTAL':
-          double.tryParse(_valueController.text.replaceAll(',', '.')) ?? 0,
+      'PDOC_VLR_TOTAL': total,
       'CCOT_PK': _contactPk,
     };
     if (widget.order != null) {
       data['PDOC_PK'] = widget.order!['PDOC_PK'];
     }
-    widget.onSave(data);
+    widget.onSave(data, _items);
     Navigator.pop(context);
   }
 
@@ -213,11 +343,36 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             onTap: widget.order == null ? _pickDate : null,
           ),
           const SizedBox(height: 16),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _items.length,
+            itemBuilder: (context, index) {
+              final i = _items[index];
+              return ListTile(
+                title: Text(i['EPRO_DESCRICAO'] ?? ''),
+                subtitle: Text('Qtd: ${i['PITEN_QTD']} - Total: ${i['PITEN_VLR_TOTAL']}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _removeItem(index),
+                ),
+              );
+            },
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: _addItem,
+              icon: const Icon(Icons.add),
+              label: const Text('Adicionar Produto'),
+            ),
+          ),
+          const SizedBox(height: 16),
           TextField(
             controller: _valueController,
-            decoration: const InputDecoration(labelText: 'Valor Total'),
-            keyboardType: TextInputType.number,
             readOnly: true,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Valor Total'),
           ),
         ],
       ),

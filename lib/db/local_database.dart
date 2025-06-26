@@ -31,7 +31,7 @@ class LocalDatabase {
     final dbPath = await path;
     return openDatabase(
       dbPath,
-      version: 6,
+      version: 7,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -99,6 +99,18 @@ CREATE TABLE PEDI_DOCUMENTOS (
   FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
 )
 ''');
+        await db.execute('''
+CREATE TABLE PEDI_ITENS (
+  PITEN_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  PDOC_PK INTEGER NOT NULL,
+  EPRO_PK INTEGER,
+  PITEN_QTD REAL,
+  PITEN_VLR_UNITARIO REAL,
+  PITEN_VLR_TOTAL REAL,
+  FOREIGN KEY(EPRO_PK) REFERENCES ESTQ_PRODUTO(EPRO_PK),
+  FOREIGN KEY(PDOC_PK) REFERENCES PEDI_DOCUMENTOS(PDOC_PK)
+)
+''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -159,6 +171,19 @@ CREATE TABLE PEDI_DOCUMENTOS (
   CCOT_PK INTEGER,
   FOREIGN KEY(CCOT_PK) REFERENCES CADE_CONTATO(CCOT_PK),
   FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
+)''');
+        }
+        if (oldVersion < 7) {
+          await db.execute('''
+CREATE TABLE PEDI_ITENS (
+  PITEN_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  PDOC_PK INTEGER NOT NULL,
+  EPRO_PK INTEGER,
+  PITEN_QTD REAL,
+  PITEN_VLR_UNITARIO REAL,
+  PITEN_VLR_TOTAL REAL,
+  FOREIGN KEY(EPRO_PK) REFERENCES ESTQ_PRODUTO(EPRO_PK),
+  FOREIGN KEY(PDOC_PK) REFERENCES PEDI_DOCUMENTOS(PDOC_PK)
 )''');
         }
       },
