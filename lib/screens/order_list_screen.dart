@@ -94,8 +94,9 @@ class _OrderListScreenState extends State<OrderListScreen> {
           final currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
           return RefreshIndicator(
             onRefresh: _refresh,
-            child: ListView.builder(
+            child: ListView.separated(
               itemCount: orders.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final o = orders[index];
                 final dateStr = o['PDOC_DT_EMISSAO']?.toString();
@@ -106,15 +107,20 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     date = DateFormat('dd/MM/yyyy').format(parsed);
                   }
                 }
-                final value =
-                    currency.format(o['PDOC_VLR_TOTAL'] ?? 0);
+                final value = currency.format(o['PDOC_VLR_TOTAL'] ?? 0);
                 return ListTile(
-                  leading: Text(
-                    o['PDOC_PK']?.toString() ?? '',
+                  title: Text(
+                    'Pedido ${o['PDOC_PK'] ?? ''}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  title: Text('Cliente: ${o['CCOT_NOME'] ?? ''}'),
-                  subtitle: Text('Dt. Emissão: $date  Vlr. Pedido: $value'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Cliente: ${o['CCOT_NOME'] ?? ''}'),
+                      Text('Data: $date'),
+                      Text('Valor: $value'),
+                    ],
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

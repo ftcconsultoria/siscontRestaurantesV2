@@ -162,8 +162,9 @@ class _ClientListScreenState extends State<ClientListScreen> {
                   ),
                 ),
                 Expanded(
-                  child: ListView.builder(
+                  child: ListView.separated(
                     itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final c = filtered[index];
                       final docLabel =
