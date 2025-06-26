@@ -98,16 +98,23 @@ class _OrderListScreenState extends State<OrderListScreen> {
               itemCount: orders.length,
               itemBuilder: (context, index) {
                 final o = orders[index];
-                final date = o['PDOC_DT_EMISSAO'] ?? '';
-                final value = currency
-                    .format(o['PDOC_VLR_TOTAL'] ?? 0);
+                final dateStr = o['PDOC_DT_EMISSAO']?.toString();
+                String date = '';
+                if (dateStr != null && dateStr.isNotEmpty) {
+                  final parsed = DateTime.tryParse(dateStr);
+                  if (parsed != null) {
+                    date = DateFormat('dd/MM/yyyy').format(parsed);
+                  }
+                }
+                final value =
+                    currency.format(o['PDOC_VLR_TOTAL'] ?? 0);
                 return ListTile(
                   leading: Text(
                     o['PDOC_PK']?.toString() ?? '',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  title: Text(o['CCOT_NOME'] ?? ''),
-                  subtitle: Text('$date - $value'),
+                  title: Text('Cliente: ${o['CCOT_NOME'] ?? ''}'),
+                  subtitle: Text('Dt. Emissão: $date  Vlr. Pedido: $value'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
