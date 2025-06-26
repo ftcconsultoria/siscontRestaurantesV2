@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'product_list_screen.dart';
 import 'client_list_screen.dart';
+import 'order_list_screen.dart';
 import 'sync_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
@@ -49,6 +50,17 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => const ClientListScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long),
+              title: const Text('Pedidos'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const OrderListScreen()),
                 );
               },
             ),
