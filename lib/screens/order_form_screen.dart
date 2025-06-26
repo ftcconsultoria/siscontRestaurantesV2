@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
+import 'package:printing/printing.dart';
+import '../utils/order_pdf.dart';
 import '../db/contact_dao.dart';
 import '../db/product_dao.dart';
 import '../db/order_item_dao.dart';
@@ -437,12 +439,24 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     Navigator.pop(context);
   }
 
+  Future<void> _printOrder() async {
+    if (widget.order == null) return;
+    final pdf = await OrderPdf.generate(
+      widget.order!,
+      _clientController.text,
+      _items,
+    );
+    await Printing.layoutPdf(onLayout: (_) async => pdf);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.order == null ? 'Novo Pedido' : 'Editar Pedido'),
         actions: [
+          if (widget.order != null)
+            IconButton(onPressed: _printOrder, icon: const Icon(Icons.print)),
           IconButton(onPressed: _submit, icon: const Icon(Icons.save)),
         ],
       ),
