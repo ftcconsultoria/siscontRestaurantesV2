@@ -460,7 +460,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       _items,
     );
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/pedido_${widget.order!['PDOC_PK']}.pdf');
+    final sanitized = _clientController.text.replaceAll(RegExp(r'\s+'), '_');
+    final file =
+        File('${dir.path}/Pedido_${widget.order!['PDOC_PK']}_$sanitized.pdf');
     await file.writeAsBytes(pdf);
     final currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\\$');
     final value = currency.format(widget.order!['PDOC_VLR_TOTAL'] ?? 0);
