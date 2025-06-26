@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../db/contact_dao.dart';
 import '../db/product_dao.dart';
 import '../db/order_item_dao.dart';
+import 'barcode_scanner_screen.dart';
 
 class OrderFormScreen extends StatefulWidget {
   final Map<String, dynamic>? order;
@@ -189,6 +190,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   Future<Map<String, dynamic>?> _showProductSearch() async {
     if (_products.isEmpty) await _loadProducts();
     String query = '';
+    String searchType = 'Nome';
     final selected = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -197,22 +199,65 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           builder: (context, setState) {
             final filtered = _products.where((p) {
               final name = (p['EPRO_DESCRICAO'] ?? '').toString().toLowerCase();
+              final ean = (p['EPRO_COD_EAN'] ?? '').toString();
               if (query.isEmpty) return true;
+              if (searchType == 'EAN') {
+                return ean.contains(query);
+              }
               return name.contains(query.toLowerCase());
             }).toList();
+            final priceFormat =
+                NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+            final stockFormat = NumberFormat.decimalPattern('pt_BR')
+              ..minimumFractionDigits = 2
+              ..maximumFractionDigits = 2;
             return SafeArea(
               child: Column(
                 children: [
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      autofocus: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Pesquisar',
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                      onChanged: (v) => setState(() => query = v),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DropdownButton<String>(
+                          value: searchType,
+                          items: const [
+                            DropdownMenuItem(value: 'Nome', child: Text('Nome')),
+                            DropdownMenuItem(value: 'EAN', child: Text('EAN')),
+                          ],
+                          onChanged: (v) => setState(() => searchType = v ?? 'Nome'),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            autofocus: true,
+                            decoration: InputDecoration(
+                              labelText: 'Pesquisar',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: searchType == 'EAN'
+                                  ? IconButton(
+                                      icon: const Icon(Icons.camera_alt),
+                                      onPressed: () async {
+                                        final code = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const BarcodeScannerScreen()),
+                                        );
+                                        if (code != null) {
+                                          setState(() {
+                                            query = code.toString();
+                                          });
+                                        }
+                                      },
+                                    )
+                                  : null,
+                            ),
+                            onChanged: (v) => setState(() => query = v),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Expanded(
@@ -221,8 +266,14 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final p = filtered[index];
+                        final price =
+                            priceFormat.format(p['EPRO_VLR_VAREJO'] ?? 0);
+                        final stock =
+                            stockFormat.format(p['EPRO_ESTQ_ATUAL'] ?? 0);
                         return ListTile(
                           title: Text(p['EPRO_DESCRICAO'] ?? ''),
+                          subtitle: Text(
+                              'EAN: ${p['EPRO_COD_EAN'] ?? ''}\nPreço: $price - Estoque: $stock'),
                           onTap: () => Navigator.pop(context, p),
                         );
                       },
