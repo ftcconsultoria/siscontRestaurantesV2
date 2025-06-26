@@ -36,8 +36,21 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   Future<void> _addOrUpdate(
       Map<String, dynamic> order, List<Map<String, dynamic>> items) async {
-    final id = await _dao.insertOrUpdate(order);
-    await _itemDao.replaceItems(id, items);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final id = await _dao.insertOrUpdate(order);
+      await _itemDao.replaceItems(id, items);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Produtos adicionados ao pedido')),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erro ao adicionar produtos: ' + e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
     await _refresh();
   }
 
