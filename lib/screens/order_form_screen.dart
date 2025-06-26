@@ -462,20 +462,36 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             onTap: _showClientSearch,
           ),
           const SizedBox(height: 16),
-          TextField(
-            readOnly: true,
-            decoration: InputDecoration(
-              labelText: 'Data',
-              suffixIcon: widget.order == null
-                  ? IconButton(
-                      icon: const Icon(Icons.calendar_today),
-                      onPressed: _pickDate,
-                    )
-                  : null,
-            ),
-            controller: TextEditingController(
-                text: DateFormat('yyyy-MM-dd').format(_date)),
-            onTap: widget.order == null ? _pickDate : null,
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: 'Data',
+                    suffixIcon: widget.order == null
+                        ? IconButton(
+                            icon: const Icon(Icons.calendar_today),
+                            onPressed: _pickDate,
+                          )
+                        : null,
+                  ),
+                  controller: TextEditingController(
+                      text: DateFormat('yyyy-MM-dd').format(_date)),
+                  onTap: widget.order == null ? _pickDate : null,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextField(
+                  controller: _valueController,
+                  readOnly: true,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: 'Valor Total'),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           SingleChildScrollView(
@@ -515,13 +531,6 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Adicionar Produto'),
             ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _valueController,
-            readOnly: true,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Valor Total'),
           ),
         ],
       ),
