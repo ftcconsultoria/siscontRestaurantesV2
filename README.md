@@ -61,4 +61,5 @@ Orders are stored in `PEDI_DOCUMENTOS` and each order can now contain
 multiple products through the `PEDI_ITENS` table. The SQL statement used to
 create this table is available at `sql/create_pedi_itens.sql`. When editing an
 order the application calculates `PDOC_VLR_TOTAL` automatically from the sum
-of its items.
+of its items. These order records and their items are also synchronized with
+Supabase when using the sync screen.

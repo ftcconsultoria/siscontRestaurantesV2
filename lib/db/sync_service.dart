@@ -3,11 +3,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'product_dao.dart';
 import 'company_dao.dart';
 import 'contact_dao.dart';
+import 'order_dao.dart';
+import 'order_item_dao.dart';
 
 class SyncService {
   final _dao = ProductDao();
   final _companyDao = CompanyDao();
   final _contactDao = ContactDao();
+  final _orderDao = OrderDao();
+  final _itemDao = OrderItemDao();
 
   Future<int?> _companyPk() async {
     final company = await _companyDao.getFirst();
@@ -69,6 +73,24 @@ class SyncService {
         });
       }
     }
+
+    // push local orders
+    final localOrders = await _orderDao.getAll();
+    for (final o in localOrders) {
+      final orderData = Map<String, dynamic>.from(o)..remove('CCOT_NOME');
+      if (companyPk != null) {
+        orderData['CEMP_PK'] = companyPk;
+      }
+      await supabase.from('PEDI_DOCUMENTOS').upsert(orderData);
+
+      final items = await _itemDao.getByOrder(o['PDOC_PK'] as int);
+      for (final item in items) {
+        final itemData = Map<String, dynamic>.from(item)
+          ..remove('EPRO_DESCRICAO')
+          ..remove('EPRO_COD_EAN');
+        await supabase.from('PEDI_ITENS').upsert(itemData);
+      }
+    }
   }
 
   /// Pulls remote data from Supabase and updates local tables.
@@ -105,6 +127,31 @@ class SyncService {
       await _dao.replaceAllPhotos(photos);
     } else {
       await _dao.replaceAllPhotos([]);
+    }
+
+    // pull remote orders
+    final orderQuery = supabase
+        .from('PEDI_DOCUMENTOS')
+        .select('PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK')
+        .order('PDOC_DT_EMISSAO', ascending: false);
+    final remoteOrders = companyPk != null
+        ? await orderQuery.eq('CEMP_PK', companyPk)
+        : await orderQuery;
+    final orders = List<Map<String, dynamic>>.from(remoteOrders);
+    await _orderDao.replaceAll(orders);
+
+    // pull remote items only for retrieved orders
+    final orderPks = orders.map((e) => e['PDOC_PK'] as int).toList();
+    if (orderPks.isNotEmpty) {
+      final pkList = orderPks.join(',');
+      final remoteItems = await supabase
+          .from('PEDI_ITENS')
+          .select('PITEN_PK, PDOC_PK, EPRO_PK, PITEN_QTD, PITEN_VLR_UNITARIO, PITEN_VLR_TOTAL')
+          .filter('PDOC_PK', 'in', '($pkList)');
+      final items = List<Map<String, dynamic>>.from(remoteItems);
+      await _itemDao.replaceAll(items);
+    } else {
+      await _itemDao.replaceAll([]);
     }
   }
 
