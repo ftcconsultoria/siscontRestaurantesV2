@@ -64,7 +64,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     if (widget.order != null) {
       final list = await _itemDao.getByOrder(widget.order!['PDOC_PK']);
       setState(() {
-        _items = list;
+        _items = List<Map<String, dynamic>>.from(list);
       });
     }
     _updateTotal();
@@ -439,27 +439,23 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 DataColumn(label: Text('Nome')),
                 DataColumn(label: Text('Qtd')),
                 DataColumn(label: Text('Vlr Total')),
+                DataColumn(label: Text('')),
               ],
               rows: List.generate(_items.length, (index) {
                 final i = _items[index];
                 return DataRow(cells: [
                   DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
                   DataCell(
-                    GestureDetector(
+                    InkWell(
                       onDoubleTap: () => _editItemQuantity(index),
                       child: Text('${i['PITEN_QTD']}'),
                     ),
                   ),
+                  DataCell(Text('${i['PITEN_VLR_TOTAL']}')),
                   DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('${i['PITEN_VLR_TOTAL']}'),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _removeItem(index),
-                        ),
-                      ],
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _removeItem(index),
                     ),
                   ),
                 ]);
