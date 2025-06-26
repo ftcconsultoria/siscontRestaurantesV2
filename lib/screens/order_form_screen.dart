@@ -16,6 +16,7 @@ class OrderFormScreen extends StatefulWidget {
 class _OrderFormScreenState extends State<OrderFormScreen> {
   late DateTime _date;
   late TextEditingController _valueController;
+  late TextEditingController _clientController;
   int? _contactPk;
   final ContactDao _contactDao = ContactDao();
   List<Map<String, dynamic>> _contacts = [];
@@ -25,6 +26,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     super.initState();
     _valueController = TextEditingController(
         text: widget.order?['PDOC_VLR_TOTAL']?.toString() ?? '');
+    _clientController = TextEditingController();
     final dateStr = widget.order?['PDOC_DT_EMISSAO']?.toString();
     _date = dateStr != null && dateStr.isNotEmpty
         ? DateTime.tryParse(dateStr) ?? DateTime.now()
@@ -37,12 +39,18 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     final list = await _contactDao.getAll();
     setState(() {
       _contacts = list;
+      if (_contactPk != null) {
+        final current =
+            list.firstWhere((c) => c['CCOT_PK'] == _contactPk, orElse: () => {});
+        _clientController.text = current['CCOT_NOME'] ?? '';
+      }
     });
   }
 
   @override
   void dispose() {
     _valueController.dispose();
+    _clientController.dispose();
     super.dispose();
   }
 
@@ -56,6 +64,69 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     if (picked != null) {
       setState(() {
         _date = picked;
+      });
+    }
+  }
+
+  Future<void> _showClientSearch() async {
+    if (_contacts.isEmpty) await _loadContacts();
+    String query = '';
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final filtered = _contacts.where((c) {
+              final name = (c['CCOT_NOME'] ?? '').toString().toLowerCase();
+              final doc = (c['CCOT_CNPJ'] ?? '')
+                  .toString()
+                  .replaceAll(RegExp(r'[^0-9]'), '');
+              final qLower = query.toLowerCase();
+              final qDigits = query.replaceAll(RegExp(r'[^0-9]'), '');
+              return name.contains(qLower) || doc.contains(qDigits);
+            }).toList();
+
+            return SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Pesquisar',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (v) => setState(() => query = v),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final c = filtered[index];
+                        return ListTile(
+                          title: Text(c['CCOT_NOME'] ?? ''),
+                          subtitle: Text(c['CCOT_CNPJ'] ?? ''),
+                          onTap: () => Navigator.pop(context, c),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (selected != null) {
+      setState(() {
+        _contactPk = selected['CCOT_PK'] as int?;
+        _clientController.text = selected['CCOT_NOME'] ?? '';
       });
     }
   }
@@ -86,16 +157,17 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          DropdownButtonFormField<int>(
-            value: _contactPk,
-            decoration: const InputDecoration(labelText: 'Cliente'),
-            items: _contacts
-                .map((c) => DropdownMenuItem(
-                      value: c['CCOT_PK'] as int?,
-                      child: Text(c['CCOT_NOME'] ?? ''),
-                    ))
-                .toList(),
-            onChanged: (v) => setState(() => _contactPk = v),
+          TextField(
+            controller: _clientController,
+            readOnly: true,
+            decoration: InputDecoration(
+              labelText: 'Cliente',
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: _showClientSearch,
+              ),
+            ),
+            onTap: _showClientSearch,
           ),
           const SizedBox(height: 16),
           TextField(
