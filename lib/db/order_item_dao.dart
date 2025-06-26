@@ -37,4 +37,15 @@ WHERE i.PDOC_PK = ?
     final db = await _db;
     await db.delete('PEDI_ITENS', where: 'PDOC_PK = ?', whereArgs: [orderPk]);
   }
+
+  Future<void> replaceAll(List<Map<String, dynamic>> items) async {
+    final db = await _db;
+    final batch = db.batch();
+    batch.delete('PEDI_ITENS');
+    for (final item in items) {
+      batch.insert('PEDI_ITENS', item,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
 }

@@ -49,4 +49,15 @@ ORDER BY d.PDOC_DT_EMISSAO DESC
     await _itemDao.deleteByOrder(id);
     await db.delete('PEDI_DOCUMENTOS', where: 'PDOC_PK = ?', whereArgs: [id]);
   }
+
+  Future<void> replaceAll(List<Map<String, dynamic>> orders) async {
+    final db = await _db;
+    final batch = db.batch();
+    batch.delete('PEDI_DOCUMENTOS');
+    for (final o in orders) {
+      batch.insert('PEDI_DOCUMENTOS', o,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
 }
