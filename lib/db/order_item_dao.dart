@@ -8,7 +8,8 @@ class OrderItemDao {
     final db = await _db;
     return await db.rawQuery('''
 SELECT i.PITEN_PK, i.PDOC_PK, i.EPRO_PK, i.PITEN_QTD,
-       i.PITEN_VLR_UNITARIO, i.PITEN_VLR_TOTAL, p.EPRO_DESCRICAO
+       i.PITEN_VLR_UNITARIO, i.PITEN_VLR_TOTAL,
+       p.EPRO_DESCRICAO, p.EPRO_COD_EAN
 FROM PEDI_ITENS i
 JOIN ESTQ_PRODUTO p ON i.EPRO_PK = p.EPRO_PK
 WHERE i.PDOC_PK = ?

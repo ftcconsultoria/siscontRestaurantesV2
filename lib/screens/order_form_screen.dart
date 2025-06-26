@@ -274,6 +274,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           'PITEN_VLR_UNITARIO': unit,
           'PITEN_VLR_TOTAL': total,
           'EPRO_DESCRICAO': product['EPRO_DESCRICAO'],
+          'EPRO_COD_EAN': product['EPRO_COD_EAN'],
         });
         _updateTotal();
       });
@@ -343,21 +344,34 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             onTap: widget.order == null ? _pickDate : null,
           ),
           const SizedBox(height: 16),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _items.length,
-            itemBuilder: (context, index) {
-              final i = _items[index];
-              return ListTile(
-                title: Text(i['EPRO_DESCRICAO'] ?? ''),
-                subtitle: Text('Qtd: ${i['PITEN_QTD']} - Total: ${i['PITEN_VLR_TOTAL']}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _removeItem(index),
-                ),
-              );
-            },
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columns: const [
+                DataColumn(label: Text('Nome')),
+                DataColumn(label: Text('Código')),
+                DataColumn(label: Text('Qtd')),
+                DataColumn(label: Text('Vlr Unit.')),
+                DataColumn(label: Text('Vlr Total')),
+                DataColumn(label: Text('')),
+              ],
+              rows: List.generate(_items.length, (index) {
+                final i = _items[index];
+                return DataRow(cells: [
+                  DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
+                  DataCell(Text(i['EPRO_COD_EAN']?.toString() ?? '')),
+                  DataCell(Text('${i['PITEN_QTD']}')),
+                  DataCell(Text('${i['PITEN_VLR_UNITARIO']}')),
+                  DataCell(Text('${i['PITEN_VLR_TOTAL']}')),
+                  DataCell(
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _removeItem(index),
+                    ),
+                  ),
+                ]);
+              }),
+            ),
           ),
           Align(
             alignment: Alignment.centerLeft,
