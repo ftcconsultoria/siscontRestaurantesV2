@@ -102,6 +102,10 @@ class _OrderListScreenState extends State<OrderListScreen> {
                 final value = currency
                     .format(o['PDOC_VLR_TOTAL'] ?? 0);
                 return ListTile(
+                  leading: Text(
+                    o['PDOC_PK']?.toString() ?? '',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   title: Text(o['CCOT_NOME'] ?? ''),
                   subtitle: Text('$date - $value'),
                   trailing: Row(

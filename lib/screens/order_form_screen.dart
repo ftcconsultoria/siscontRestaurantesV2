@@ -71,6 +71,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   Future<void> _showClientSearch() async {
     if (_contacts.isEmpty) await _loadContacts();
     String query = '';
+    String searchType = 'Nome';
     final selected = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -84,7 +85,11 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                   .replaceAll(RegExp(r'[^0-9]'), '');
               final qLower = query.toLowerCase();
               final qDigits = query.replaceAll(RegExp(r'[^0-9]'), '');
-              return name.contains(qLower) || doc.contains(qDigits);
+              if (query.isEmpty) return true;
+              if (searchType == 'CPF/CNPJ') {
+                return doc.contains(qDigits);
+              }
+              return name.contains(qLower);
             }).toList();
 
             return SafeArea(
@@ -92,13 +97,30 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      autofocus: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Pesquisar',
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                      onChanged: (v) => setState(() => query = v),
+                    child: Row(
+                      children: [
+                        DropdownButton<String>(
+                          value: searchType,
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'Nome', child: Text('Nome')),
+                            DropdownMenuItem(
+                                value: 'CPF/CNPJ', child: Text('CPF/CNPJ')),
+                          ],
+                          onChanged: (v) => setState(() => searchType = v ?? 'Nome'),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            autofocus: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Pesquisar',
+                              prefixIcon: Icon(Icons.search),
+                            ),
+                            onChanged: (v) => setState(() => query = v),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Expanded(
