@@ -497,6 +497,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
+              border: TableBorder.all(color: Colors.grey),
               columns: const [
                 DataColumn(label: Text('Nome')),
                 DataColumn(label: Text('Qtd')),
