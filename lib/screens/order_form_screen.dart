@@ -3,6 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:cross_file/cross_file.dart';
+import 'package:path_provider/path_provider.dart';
 import '../utils/order_pdf.dart';
 import '../db/contact_dao.dart';
 import '../db/product_dao.dart';
@@ -449,14 +452,33 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     await Printing.layoutPdf(onLayout: (_) async => pdf);
   }
 
+  Future<void> _shareOrder() async {
+    if (widget.order == null) return;
+    final pdf = await OrderPdf.generate(
+      widget.order!,
+      _clientController.text,
+      _items,
+    );
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/pedido_${widget.order!['PDOC_PK']}.pdf');
+    await file.writeAsBytes(pdf);
+    final currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\\$');
+    final value = currency.format(widget.order!['PDOC_VLR_TOTAL'] ?? 0);
+    final text =
+        'Segue PDF do Pedido Numero: ${widget.order!['PDOC_PK']}\\nValor: $value';
+    await Share.shareXFiles([XFile(file.path)], text: text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.order == null ? 'Novo Pedido' : 'Editar Pedido'),
         actions: [
-          if (widget.order != null)
+          if (widget.order != null) ...[
             IconButton(onPressed: _printOrder, icon: const Icon(Icons.print)),
+            IconButton(onPressed: _shareOrder, icon: const Icon(Icons.share)),
+          ],
           IconButton(onPressed: _submit, icon: const Icon(Icons.save)),
         ],
       ),
