@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
 import '../db/contact_dao.dart';
 import '../db/product_dao.dart';
 import '../db/order_item_dao.dart';
@@ -179,12 +181,25 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       },
     );
 
-    if (selected != null) {
+  if (selected != null) {
       setState(() {
         _contactPk = selected['CCOT_PK'] as int?;
         _clientController.text = selected['CCOT_NOME'] ?? '';
       });
     }
+  }
+
+  void _showPhoto(String url) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        child: InteractiveViewer(
+          child: url.startsWith('http')
+              ? CachedNetworkImage(imageUrl: url)
+              : Image.file(File(url)),
+        ),
+      ),
+    );
   }
 
   Future<Map<String, dynamic>?> _showProductSearch() async {
@@ -270,7 +285,38 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                             priceFormat.format(p['EPRO_VLR_VAREJO'] ?? 0);
                         final stock =
                             stockFormat.format(p['EPRO_ESTQ_ATUAL'] ?? 0);
+                        Widget leadingWidget = const SizedBox(
+                          width: 70,
+                          height: 70,
+                          child: Icon(Icons.shopping_cart),
+                        );
+                        final fotos = p['ESTQ_PRODUTO_FOTO'] as List?;
+                        if (fotos != null && fotos.isNotEmpty) {
+                          final url = fotos.first['EPRO_FOTO_URL'];
+                          if (url != null && url is String && url.isNotEmpty) {
+                            leadingWidget = GestureDetector(
+                              onDoubleTap: () => _showPhoto(url),
+                              child: SizedBox(
+                                width: 70,
+                                height: 70,
+                                child: url.startsWith('http')
+                                    ? CachedNetworkImage(
+                                        imageUrl: url,
+                                        fit: BoxFit.cover,
+                                        placeholder: (c, s) => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      )
+                                    : Image.file(
+                                        File(url),
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            );
+                          }
+                        }
                         return ListTile(
+                          leading: leadingWidget,
                           title: Text(p['EPRO_DESCRICAO'] ?? ''),
                           subtitle: Text(
                               'EAN: ${p['EPRO_COD_EAN'] ?? ''}\nPreço: $price - Estoque: $stock'),
