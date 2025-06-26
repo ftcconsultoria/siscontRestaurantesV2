@@ -83,6 +83,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   }
 
   Future<void> _pickDate() async {
+    if (widget.order != null) return;
     final picked = await showDatePicker(
       context: context,
       initialDate: _date,
@@ -330,14 +331,16 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             readOnly: true,
             decoration: InputDecoration(
               labelText: 'Data',
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.calendar_today),
-                onPressed: _pickDate,
-              ),
+              suffixIcon: widget.order == null
+                  ? IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: _pickDate,
+                    )
+                  : null,
             ),
             controller: TextEditingController(
                 text: DateFormat('yyyy-MM-dd').format(_date)),
-            onTap: _pickDate,
+            onTap: widget.order == null ? _pickDate : null,
           ),
           const SizedBox(height: 16),
           ListView.builder(
@@ -368,6 +371,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           TextField(
             controller: _valueController,
             readOnly: true,
+            keyboardType: TextInputType.number,
             decoration: const InputDecoration(labelText: 'Valor Total'),
           ),
         ],
