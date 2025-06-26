@@ -43,22 +43,22 @@ class _ConfigScreenState extends State<ConfigScreen> {
     final cnpj = _cnpjController.text.trim();
     if (cnpj.isEmpty) return;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-        const SnackBar(content: Text('Buscando empresa...')));
+    messenger
+        .showSnackBar(const SnackBar(content: Text('Buscando empresa...')));
     try {
       final supabase = Supabase.instance.client;
       final result = await supabase
           .from('CADE_EMPRESA')
-          .eq('CEMP_CNPJ', cnpj)
           .select(
               'CEMP_PK, CEMP_NOME_FANTASIA, CEMP_RAZAO_SOCIAL, CEMP_CNPJ, CEMP_IE')
+          .eq('CEMP_CNPJ', cnpj)
           .maybeSingle();
       if (result != null) {
         await _companyDao.setCompany(result);
         final users = await supabase
             .from('CADE_USUARIO')
-            .eq('CEMP_PK', result['CEMP_PK'])
-            .select('CUSU_PK, CUSU_USUARIO, CUSU_SENHA, CEMP_PK');
+            .select('CUSU_PK, CUSU_USUARIO, CUSU_SENHA, CEMP_PK')
+            .eq('CEMP_PK', result['CEMP_PK']);
         await _userDao.replaceAll(List<Map<String, dynamic>>.from(users));
         if (mounted) {
           setState(() {
