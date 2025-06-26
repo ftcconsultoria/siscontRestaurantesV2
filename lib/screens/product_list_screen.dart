@@ -258,8 +258,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   itemCount: filtered.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final produto = filtered[index];
                     final precoValor = produto['EPRO_VLR_VAREJO'] ?? 0;
