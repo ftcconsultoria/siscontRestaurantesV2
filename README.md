@@ -56,3 +56,9 @@ Client information is stored in the `CADE_CONTATO` table. Each record also
 includes a `CEMP_PK` foreign key so that contacts belong to a specific
 company. The synchronization routine now uploads these client records to
 Supabase together with products and photos.
+
+Orders are stored in `PEDI_DOCUMENTOS` and each order can now contain
+multiple products through the `PEDI_ITENS` table. The SQL statement used to
+create this table is available at `sql/create_pedi_itens.sql`. When editing an
+order the application calculates `PDOC_VLR_TOTAL` automatically from the sum
+of its items.
