@@ -55,8 +55,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     setState(() {
       _contacts = list;
       if (_contactPk != null) {
-        final current =
-            list.firstWhere((c) => c['CCOT_PK'] == _contactPk, orElse: () => {});
+        final current = list.firstWhere((c) => c['CCOT_PK'] == _contactPk,
+            orElse: () => {});
         _clientController.text = current['CCOT_NOME'] ?? '';
       }
     });
@@ -78,8 +78,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   }
 
   void _updateTotal() {
-    final total = _items.fold<double>(0,
-        (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
+    final total = _items.fold<double>(
+        0, (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
     _valueController.text = total.toStringAsFixed(2);
   }
 
@@ -142,12 +142,16 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                           width: 140,
                           child: DropdownButtonFormField<String>(
                             value: searchType,
-                            decoration: const InputDecoration(labelText: 'Tipo'),
+                            decoration:
+                                const InputDecoration(labelText: 'Tipo'),
                             items: const [
-                              DropdownMenuItem(value: 'Nome', child: Text('Nome')),
-                              DropdownMenuItem(value: 'CPF/CNPJ', child: Text('CPF/CNPJ')),
+                              DropdownMenuItem(
+                                  value: 'Nome', child: Text('Nome')),
+                              DropdownMenuItem(
+                                  value: 'CPF/CNPJ', child: Text('CPF/CNPJ')),
                             ],
-                            onChanged: (v) => setState(() => searchType = v ?? 'Nome'),
+                            onChanged: (v) =>
+                                setState(() => searchType = v ?? 'Nome'),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -186,7 +190,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       },
     );
 
-  if (selected != null) {
+    if (selected != null) {
       setState(() {
         _contactPk = selected['CCOT_PK'] as int?;
         _clientController.text = selected['CCOT_NOME'] ?? '';
@@ -243,10 +247,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                         DropdownButton<String>(
                           value: searchType,
                           items: const [
-                            DropdownMenuItem(value: 'Nome', child: Text('Nome')),
+                            DropdownMenuItem(
+                                value: 'Nome', child: Text('Nome')),
                             DropdownMenuItem(value: 'EAN', child: Text('EAN')),
                           ],
-                          onChanged: (v) => setState(() => searchType = v ?? 'Nome'),
+                          onChanged: (v) =>
+                              setState(() => searchType = v ?? 'Nome'),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -416,8 +422,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       ),
     );
     if (confirmed == true) {
-      final qty =
-          double.tryParse(controller.text.replaceAll(',', '.')) ?? item['PITEN_QTD'];
+      final qty = double.tryParse(controller.text.replaceAll(',', '.')) ??
+          item['PITEN_QTD'];
       final unit = (item['PITEN_VLR_UNITARIO'] as num? ?? 0).toDouble();
       setState(() {
         _items[index]['PITEN_QTD'] = qty;
@@ -428,8 +434,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   }
 
   void _submit() {
-    final total = _items.fold<double>(0,
-        (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
+    final total = _items.fold<double>(
+        0, (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
     final data = <String, dynamic>{
       'PDOC_DT_EMISSAO': DateFormat('yyyy-MM-dd').format(_date),
       'PDOC_VLR_TOTAL': total,
@@ -464,7 +470,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     final file =
         File('${dir.path}/Pedido_${widget.order!['PDOC_PK']}_$sanitized.pdf');
     await file.writeAsBytes(pdf);
-    final currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\\$');
+    final currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
     final value = currency.format(widget.order!['PDOC_VLR_TOTAL'] ?? 0);
     final text =
         'Segue PDF do Pedido Numero: ${widget.order!['PDOC_PK']}\\nValor: $value';
@@ -525,8 +531,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                   controller: _valueController,
                   readOnly: true,
                   keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: 'Valor Total'),
+                  decoration: const InputDecoration(labelText: 'Valor Total'),
                 ),
               ),
             ],

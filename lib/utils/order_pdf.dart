@@ -22,8 +22,8 @@ class OrderPdf {
     final date = dateStr.isNotEmpty
         ? DateFormat('yyyy-MM-dd').parse(dateStr)
         : DateTime.now();
-    final total = items.fold<double>(0,
-        (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
+    final total = items.fold<double>(
+        0, (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
 
     doc.addPage(
       pw.Page(
@@ -32,8 +32,9 @@ class OrderPdf {
           pw.Widget cell(String text,
               {bool header = false, bool alignRight = false}) {
             return pw.Container(
-              alignment:
-                  alignRight ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
+              alignment: alignRight
+                  ? pw.Alignment.centerRight
+                  : pw.Alignment.centerLeft,
               padding: const pw.EdgeInsets.all(4),
               child: pw.Text(
                 text,
@@ -70,8 +71,8 @@ class OrderPdf {
                 border: pw.TableBorder.all(),
                 children: [
                   pw.TableRow(
-                    decoration:
-                        const pw.BoxDecoration(color: pw.PdfColors.grey300),
+                    decoration: const pw.BoxDecoration(
+                        color: PdfColor.fromInt(0xFFE0E0E0)),
                     children: [
                       cell('Produto', header: true),
                       cell('Qtd', header: true, alignRight: true),
@@ -84,8 +85,8 @@ class OrderPdf {
                     return pw.TableRow(
                       decoration: pw.BoxDecoration(
                         color: index.isEven
-                            ? pw.PdfColors.grey100
-                            : pw.PdfColors.white,
+                            ? PdfColor.fromInt(0xFFF5F5F5)
+                            : PdfColor.fromInt(0xFFFFFFFF),
                       ),
                       children: [
                         cell(i['EPRO_DESCRICAO'] ?? ''),
