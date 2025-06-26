@@ -36,6 +36,17 @@ ORDER BY d.PDOC_DT_EMISSAO DESC
     if (companyPk != null) {
       data['CEMP_PK'] = companyPk;
     }
+
+    if (data.containsKey('PDOC_PK')) {
+      await db.update(
+        'PEDI_DOCUMENTOS',
+        data,
+        where: 'PDOC_PK = ?',
+        whereArgs: [data['PDOC_PK']],
+      );
+      return data['PDOC_PK'] as int;
+    }
+
     final id = await db.insert(
       'PEDI_DOCUMENTOS',
       data,
