@@ -339,6 +339,43 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     });
   }
 
+  Future<void> _editItemQuantity(int index) async {
+    final item = _items[index];
+    final controller =
+        TextEditingController(text: item['PITEN_QTD']?.toString() ?? '0');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(item['EPRO_DESCRICAO'] ?? ''),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Quantidade'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      final qty =
+          double.tryParse(controller.text.replaceAll(',', '.')) ?? item['PITEN_QTD'];
+      final unit = (item['PITEN_VLR_UNITARIO'] as num? ?? 0).toDouble();
+      setState(() {
+        _items[index]['PITEN_QTD'] = qty;
+        _items[index]['PITEN_VLR_TOTAL'] = qty * unit;
+        _updateTotal();
+      });
+    }
+  }
+
   void _submit() {
     final total = _items.fold<double>(0,
         (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
@@ -400,24 +437,29 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             child: DataTable(
               columns: const [
                 DataColumn(label: Text('Nome')),
-                DataColumn(label: Text('Código')),
                 DataColumn(label: Text('Qtd')),
-                DataColumn(label: Text('Vlr Unit.')),
                 DataColumn(label: Text('Vlr Total')),
-                DataColumn(label: Text('')),
               ],
               rows: List.generate(_items.length, (index) {
                 final i = _items[index];
                 return DataRow(cells: [
                   DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
-                  DataCell(Text(i['EPRO_COD_EAN']?.toString() ?? '')),
-                  DataCell(Text('${i['PITEN_QTD']}')),
-                  DataCell(Text('${i['PITEN_VLR_UNITARIO']}')),
-                  DataCell(Text('${i['PITEN_VLR_TOTAL']}')),
                   DataCell(
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => _removeItem(index),
+                    GestureDetector(
+                      onDoubleTap: () => _editItemQuantity(index),
+                      child: Text('${i['PITEN_QTD']}'),
+                    ),
+                  ),
+                  DataCell(
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${i['PITEN_VLR_TOTAL']}'),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _removeItem(index),
+                        ),
+                      ],
                     ),
                   ),
                 ]);
