@@ -3,6 +3,7 @@ import 'product_list_screen.dart';
 import 'client_list_screen.dart';
 import 'order_list_screen.dart';
 import 'sync_screen.dart';
+import 'dashboard_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 
@@ -29,6 +30,11 @@ class HomeScreen extends StatelessWidget {
               title: const Text('Dashboard'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const DashboardScreen()),
+                );
               },
             ),
             ListTile(
