@@ -82,7 +82,7 @@ ORDER BY d.PDOC_PK DESC
     var where = 'PDOC_DT_EMISSAO >= ? AND PDOC_DT_EMISSAO <= ?';
     if (companyPk != null) {
       where += ' AND CEMP_PK = ?';
-      args.add(companyPk);
+      args.add(companyPk.toString());
     }
     final result = await db.rawQuery(
         'SELECT SUM(PDOC_VLR_TOTAL) as total FROM PEDI_DOCUMENTOS WHERE ' +
