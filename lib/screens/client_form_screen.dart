@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../widgets/uppercase_input_formatter.dart';
 import '../widgets/cpf_cnpj_input_formatter.dart';
 import '../widgets/cep_input_formatter.dart';
@@ -39,6 +41,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late final TextEditingController _latController;
   late final TextEditingController _lonController;
   late String _tipoPessoa;
+  LatLng? _location;
 
   @override
   void initState() {
@@ -87,6 +90,13 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _latController = TextEditingController(text: c?['CCOT_END_LAT']?.toString() ?? '');
     _lonController = TextEditingController(text: c?['CCOT_END_LON']?.toString() ?? '');
     _tipoPessoa = c?['CCOT_TP_PESSOA']?.toString() ?? 'JURIDICA';
+    if (_latController.text.isNotEmpty && _lonController.text.isNotEmpty) {
+      final lat = double.tryParse(_latController.text);
+      final lon = double.tryParse(_lonController.text);
+      if (lat != null && lon != null) {
+        _location = LatLng(lat, lon);
+      }
+    }
   }
 
   @override
@@ -268,6 +278,25 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         Navigator.pop(context);
       }
     }
+  }
+
+  Future<void> _getLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return;
+    }
+    final position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _latController.text = position.latitude.toString();
+      _lonController.text = position.longitude.toString();
+      _location = LatLng(position.latitude, position.longitude);
+    });
   }
 
   void _submit() {
@@ -476,23 +505,36 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               decoration: const InputDecoration(labelText: 'UF'),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _latController,
-                    decoration: const InputDecoration(labelText: 'Latitude'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _lonController,
-                    decoration: const InputDecoration(labelText: 'Longitude'),
-                  ),
-                ),
-              ],
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _getLocation,
+                icon: const Icon(Icons.map),
+                label: const Text('Definir localização'),
+              ),
             ),
+            if (_location != null) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 200,
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: _location!,
+                    zoom: 16,
+                  ),
+                  markers: {
+                    Marker(markerId: const MarkerId('loc'), position: _location!)
+                  },
+                  onTap: (pos) {
+                    setState(() {
+                      _location = pos;
+                      _latController.text = pos.latitude.toString();
+                      _lonController.text = pos.longitude.toString();
+                    });
+                  },
+                ),
+              ),
+            ],
           ],
         ),
       ),
