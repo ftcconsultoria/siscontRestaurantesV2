@@ -53,16 +53,16 @@ class SyncService {
       final path = photo['EPRO_FOTO_PATH'] as String?;
       final productPk = photo['EPRO_PK'] as int?;
       if (productPk == null) continue;
-      if (path != null && (url == null || !url.startsWith('http')) ) {
+      if (path != null && (url == null || !url.startsWith('http'))) {
         final file = File(path);
         if (await file.exists()) {
           final fileName = path.split('/').last;
-          final path = '$productPk/$fileName';
+          final uploadPath = '$productPk/$fileName';
           await supabase.storage
               .from('fotos-produtos')
-              .uploadBinary(path, await file.readAsBytes());
+              .uploadBinary(uploadPath, await file.readAsBytes());
           final publicUrl =
-              supabase.storage.from('fotos-produtos').getPublicUrl(path);
+              supabase.storage.from('fotos-produtos').getPublicUrl(uploadPath);
           await supabase.from('ESTQ_PRODUTO_FOTO').upsert({
             'EPRO_PK': productPk,
             'EPRO_FOTO_URL': publicUrl,
