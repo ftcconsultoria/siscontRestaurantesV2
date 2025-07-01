@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
 import 'local_database.dart';
 import 'company_dao.dart';
 
@@ -70,5 +71,24 @@ ORDER BY d.PDOC_PK DESC
           conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
+  }
+
+  Future<double> getTotalInRange(DateTime start, DateTime end) async {
+    final db = await _db;
+    final companyPk = await _getCompanyPk();
+    final startStr = DateFormat('yyyy-MM-dd').format(start);
+    final endStr = DateFormat('yyyy-MM-dd').format(end);
+    final args = [startStr, endStr];
+    var where = 'PDOC_DT_EMISSAO >= ? AND PDOC_DT_EMISSAO <= ?';
+    if (companyPk != null) {
+      where += ' AND CEMP_PK = ?';
+      args.add(companyPk);
+    }
+    final result = await db.rawQuery(
+        'SELECT SUM(PDOC_VLR_TOTAL) as total FROM PEDI_DOCUMENTOS WHERE ' +
+            where,
+        args);
+    final total = result.first['total'] as num?;
+    return total?.toDouble() ?? 0.0;
   }
 }
