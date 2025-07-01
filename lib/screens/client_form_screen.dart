@@ -36,6 +36,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late final TextEditingController _municipioController;
   late final TextEditingController _codigoIbgeController;
   late final TextEditingController _ufController;
+  late final TextEditingController _latController;
+  late final TextEditingController _lonController;
   late String _tipoPessoa;
 
   @override
@@ -82,6 +84,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         TextEditingController(text: c?['CCOT_END_MUNICIPIO']?.toString().toUpperCase() ?? '');
     _codigoIbgeController = TextEditingController(text: c?['CCOT_END_CODIGO_IBGE']?.toString() ?? '');
     _ufController = TextEditingController(text: c?['CCOT_END_UF']?.toString() ?? '');
+    _latController = TextEditingController(text: c?['CCOT_END_LAT']?.toString() ?? '');
+    _lonController = TextEditingController(text: c?['CCOT_END_LON']?.toString() ?? '');
     _tipoPessoa = c?['CCOT_TP_PESSOA']?.toString() ?? 'JURIDICA';
   }
 
@@ -103,6 +107,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _municipioController.dispose();
     _codigoIbgeController.dispose();
     _ufController.dispose();
+    _latController.dispose();
+    _lonController.dispose();
     super.dispose();
   }
 
@@ -280,6 +286,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       'CCOT_END_MUNICIPIO': _municipioController.text.toUpperCase(),
       'CCOT_END_CODIGO_IBGE': _codigoIbgeController.text,
       'CCOT_END_UF': _ufController.text,
+      'CCOT_END_LAT': _latController.text,
+      'CCOT_END_LON': _lonController.text,
       'CCOT_TP_PESSOA': _tipoPessoa,
     };
     if (widget.client != null) {
@@ -466,6 +474,24 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             TextField(
               controller: _ufController,
               decoration: const InputDecoration(labelText: 'UF'),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _latController,
+                    decoration: const InputDecoration(labelText: 'Latitude'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _lonController,
+                    decoration: const InputDecoration(labelText: 'Longitude'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
