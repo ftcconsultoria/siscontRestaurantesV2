@@ -20,7 +20,7 @@ class ProductDao {
     final rows = await db.rawQuery('''
 SELECT p.EPRO_PK, p.EPRO_DESCRICAO, p.EPRO_VLR_VAREJO,
        p.EPRO_ESTQ_ATUAL, p.EPRO_COD_EAN, p.CEMP_PK,
-       f.EPRO_FOTO_PK AS FOTO_PK, f.EPRO_FOTO_URL
+       f.EPRO_FOTO_PK AS FOTO_PK, f.EPRO_FOTO_URL, f.EPRO_FOTO_PATH
 FROM ESTQ_PRODUTO p
 LEFT JOIN ESTQ_PRODUTO_FOTO f ON p.EPRO_PK = f.EPRO_PK
 ${companyPk != null ? 'WHERE p.CEMP_PK = ?' : ''}
@@ -30,6 +30,7 @@ ORDER BY p.EPRO_DESCRICAO
     return rows.map((r) {
       final map = Map<String, dynamic>.from(r);
       final fotoUrl = map.remove('EPRO_FOTO_URL');
+      final fotoPath = map.remove('EPRO_FOTO_PATH');
       final fotoPk = map.remove('FOTO_PK');
       if (fotoUrl != null || fotoPk != null) {
         map['ESTQ_PRODUTO_FOTO'] = [
@@ -37,6 +38,7 @@ ORDER BY p.EPRO_DESCRICAO
             'EPRO_FOTO_PK': fotoPk,
             'EPRO_PK': map['EPRO_PK'],
             'EPRO_FOTO_URL': fotoUrl,
+            'EPRO_FOTO_PATH': fotoPath,
           }
         ];
       }
@@ -86,12 +88,15 @@ ORDER BY p.EPRO_DESCRICAO
   }
 
   /// Inserts or updates the photo record for a product.
-  Future<void> upsertPhoto(int productPk, String url) async {
+  Future<void> upsertPhoto(int productPk,
+      {String? url, String? path}) async {
     final db = await _db;
-    await db.delete('ESTQ_PRODUTO_FOTO', where: 'EPRO_PK = ?', whereArgs: [productPk]);
+    await db.delete('ESTQ_PRODUTO_FOTO',
+        where: 'EPRO_PK = ?', whereArgs: [productPk]);
     await db.insert('ESTQ_PRODUTO_FOTO', {
       'EPRO_PK': productPk,
       'EPRO_FOTO_URL': url,
+      'EPRO_FOTO_PATH': path,
     });
   }
 

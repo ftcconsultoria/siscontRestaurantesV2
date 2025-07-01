@@ -1,5 +1,8 @@
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path_lib;
+import 'package:http/http.dart' as http;
 import 'product_dao.dart';
 import 'company_dao.dart';
 import 'contact_dao.dart';
@@ -47,12 +50,13 @@ class SyncService {
     final localPhotos = await _dao.getAllPhotos();
     for (final photo in localPhotos) {
       final url = photo['EPRO_FOTO_URL'] as String?;
+      final path = photo['EPRO_FOTO_PATH'] as String?;
       final productPk = photo['EPRO_PK'] as int?;
-      if (url == null || productPk == null) continue;
-      if (!url.startsWith('http')) {
-        final file = File(url);
+      if (productPk == null) continue;
+      if (path != null && (url == null || !url.startsWith('http')) ) {
+        final file = File(path);
         if (await file.exists()) {
-          final fileName = url.split('/').last;
+          final fileName = path.split('/').last;
           final path = '$productPk/$fileName';
           await supabase.storage
               .from('fotos-produtos')
@@ -63,10 +67,10 @@ class SyncService {
             'EPRO_PK': productPk,
             'EPRO_FOTO_URL': publicUrl,
           });
-          await _dao.upsertPhoto(productPk, publicUrl);
+          await _dao.upsertPhoto(productPk, url: publicUrl);
           await file.delete();
         }
-      } else {
+      } else if (url != null) {
         await supabase.from('ESTQ_PRODUTO_FOTO').upsert({
           'EPRO_PK': productPk,
           'EPRO_FOTO_URL': url,
@@ -124,6 +128,27 @@ class SyncService {
           .select('EPRO_FOTO_PK, EPRO_PK, EPRO_FOTO_URL')
           .filter('EPRO_PK', 'in', '($pkList)');
       final photos = List<Map<String, dynamic>>.from(remotePhotos);
+
+      final dir = await getApplicationDocumentsDirectory();
+      final photosDir = Directory(path_lib.join(dir.path, 'downloaded_photos'));
+      await photosDir.create(recursive: true);
+      for (final p in photos) {
+        final url = p['EPRO_FOTO_URL'] as String?;
+        if (url == null) continue;
+        final fileName = url.split('/').last;
+        final filePath = path_lib.join(photosDir.path, fileName);
+        final file = File(filePath);
+        if (!await file.exists()) {
+          try {
+            final response = await http.get(Uri.parse(url));
+            if (response.statusCode == 200) {
+              await file.writeAsBytes(response.bodyBytes);
+            }
+          } catch (_) {}
+        }
+        p['EPRO_FOTO_PATH'] = filePath;
+      }
+
       await _dao.replaceAllPhotos(photos);
     } else {
       await _dao.replaceAllPhotos([]);
