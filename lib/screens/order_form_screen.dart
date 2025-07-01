@@ -198,14 +198,14 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     }
   }
 
-  void _showPhoto(String url) {
+  void _showPhoto(String pathOrUrl) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
         child: InteractiveViewer(
-          child: url.startsWith('http')
-              ? CachedNetworkImage(imageUrl: url)
-              : Image.file(File(url)),
+          child: pathOrUrl.startsWith('http')
+              ? CachedNetworkImage(imageUrl: pathOrUrl)
+              : Image.file(File(pathOrUrl)),
         ),
       ),
     );
@@ -303,23 +303,30 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                         );
                         final fotos = p['ESTQ_PRODUTO_FOTO'] as List?;
                         if (fotos != null && fotos.isNotEmpty) {
+                          final path = fotos.first['EPRO_FOTO_PATH'];
                           final url = fotos.first['EPRO_FOTO_URL'];
-                          if (url != null && url is String && url.isNotEmpty) {
+                          String? displayPath;
+                          if (path is String && path.isNotEmpty) {
+                            displayPath = path;
+                          } else if (url is String && url.isNotEmpty) {
+                            displayPath = url;
+                          }
+                          if (displayPath != null) {
                             leadingWidget = GestureDetector(
-                              onDoubleTap: () => _showPhoto(url),
+                              onDoubleTap: () => _showPhoto(displayPath!),
                               child: SizedBox(
                                 width: 70,
                                 height: 70,
-                                child: url.startsWith('http')
+                                child: displayPath.startsWith('http')
                                     ? CachedNetworkImage(
-                                        imageUrl: url,
+                                        imageUrl: displayPath,
                                         fit: BoxFit.cover,
                                         placeholder: (c, s) => const Center(
                                           child: CircularProgressIndicator(),
                                         ),
                                       )
                                     : Image.file(
-                                        File(url),
+                                        File(displayPath),
                                         fit: BoxFit.cover,
                                       ),
                               ),

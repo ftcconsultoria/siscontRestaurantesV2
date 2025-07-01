@@ -59,9 +59,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Future<void> _deleteProduct(int id) async {
     final photo = await _dao.getPhoto(id);
     if (photo != null) {
+      final path = photo['EPRO_FOTO_PATH'] as String?;
       final url = photo['EPRO_FOTO_URL'] as String?;
-      if (url != null && !url.startsWith('http')) {
-        final file = File(url);
+      final filePath = path ??
+          (url != null && !url.startsWith('http') ? url : null);
+      if (filePath != null) {
+        final file = File(filePath);
         if (await file.exists()) await file.delete();
       }
       await _dao.deletePhoto(id);
@@ -120,13 +123,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
     final existing = await _dao.getPhoto(productPk);
     if (existing != null) {
+      final oldPath = existing['EPRO_FOTO_PATH'] as String?;
       final oldUrl = existing['EPRO_FOTO_URL'] as String?;
-      if (oldUrl != null && !oldUrl.startsWith('http')) {
-        final f = File(oldUrl);
+      final filePath = oldPath ??
+          (oldUrl != null && !oldUrl.startsWith('http') ? oldUrl : null);
+      if (filePath != null) {
+        final f = File(filePath);
         if (await f.exists()) await f.delete();
       }
     }
-    await _dao.upsertPhoto(productPk, path);
+    await _dao.upsertPhoto(productPk, path: path);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -137,14 +143,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   /// Displays the product photo in a dialog.
-  void _showPhoto(String url) {
+  void _showPhoto(String pathOrUrl) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
         child: InteractiveViewer(
-          child: url.startsWith('http')
-              ? CachedNetworkImage(imageUrl: url)
-              : Image.file(File(url)),
+          child: pathOrUrl.startsWith('http')
+              ? CachedNetworkImage(imageUrl: pathOrUrl)
+              : Image.file(File(pathOrUrl)),
         ),
       ),
     );
@@ -276,23 +282,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       child: Icon(Icons.shopping_cart),
                     );
                     if (fotos != null && fotos.isNotEmpty) {
+                      final path = fotos.first['EPRO_FOTO_PATH'];
                       final url = fotos.first['EPRO_FOTO_URL'];
-                      if (url != null && url is String && url.isNotEmpty) {
+                      String? displayPath;
+                      if (path is String && path.isNotEmpty) {
+                        displayPath = path;
+                      } else if (url is String && url.isNotEmpty) {
+                        displayPath = url;
+                      }
+                      if (displayPath != null) {
                         leadingWidget = GestureDetector(
-                          onDoubleTap: () => _showPhoto(url),
+                          onDoubleTap: () => _showPhoto(displayPath!),
                           child: SizedBox(
                             width: 70,
                             height: 70,
-                            child: url.startsWith('http')
+                            child: displayPath.startsWith('http')
                                 ? CachedNetworkImage(
-                                    imageUrl: url,
+                                    imageUrl: displayPath,
                                     fit: BoxFit.cover,
                                     placeholder: (c, s) => const Center(
                                       child: CircularProgressIndicator(),
                                     ),
                                   )
                                 : Image.file(
-                                    File(url),
+                                    File(displayPath),
                                     fit: BoxFit.cover,
                                   ),
                           ),

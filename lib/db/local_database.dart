@@ -31,7 +31,7 @@ class LocalDatabase {
     final dbPath = await path;
     return openDatabase(
       dbPath,
-      version: 8,
+      version: 9,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -47,7 +47,8 @@ CREATE TABLE ESTQ_PRODUTO (
 CREATE TABLE ESTQ_PRODUTO_FOTO (
   EPRO_FOTO_PK INTEGER PRIMARY KEY AUTOINCREMENT,
   EPRO_PK INTEGER,
-  EPRO_FOTO_URL TEXT
+  EPRO_FOTO_URL TEXT,
+  EPRO_FOTO_PATH TEXT
 )
 ''');
         await db.execute('''
@@ -193,6 +194,10 @@ CREATE TABLE PEDI_ITENS (
               'ALTER TABLE CADE_CONTATO ADD COLUMN CCOT_END_LAT REAL');
           await db.execute(
               'ALTER TABLE CADE_CONTATO ADD COLUMN CCOT_END_LON REAL');
+        }
+        if (oldVersion < 9) {
+          await db.execute(
+              'ALTER TABLE ESTQ_PRODUTO_FOTO ADD COLUMN EPRO_FOTO_PATH TEXT');
         }
       },
     );
