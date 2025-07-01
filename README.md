@@ -57,6 +57,9 @@ includes a `CEMP_PK` foreign key so that contacts belong to a specific
 company. The synchronization routine now uploads these client records to
 Supabase together with products and photos.
 
+Each client record also stores latitude and longitude coordinates using the
+`CCOT_END_LAT` and `CCOT_END_LON` columns in the `CADE_CONTATO` table.
+
 Orders are stored in `PEDI_DOCUMENTOS` and each order can now contain
 multiple products through the `PEDI_ITENS` table. The SQL statement used to
 create this table is available at `sql/create_pedi_itens.sql`. When editing an
