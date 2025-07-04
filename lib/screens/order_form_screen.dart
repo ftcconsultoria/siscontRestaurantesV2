@@ -294,8 +294,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                         final p = filtered[index];
                         final price =
                             priceFormat.format(p['EPRO_VLR_VAREJO'] ?? 0);
-                        final stock =
-                            stockFormat.format(p['EPRO_ESTQ_ATUAL'] ?? 0);
+                        final estqAtual = p['EPRO_ESTQ_ATUAL'] ?? 0;
+                        final stock = stockFormat.format(estqAtual);
                         Widget leadingWidget = const SizedBox(
                           width: 70,
                           height: 70,
@@ -338,6 +338,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                           title: Text(p['EPRO_DESCRICAO'] ?? ''),
                           subtitle: Text(
                               'EAN: ${p['EPRO_COD_EAN'] ?? ''}\nPreço: $price - Estoque: $stock'),
+                          tileColor: estqAtual == 0
+                              ? Colors.red.withOpacity(0.2)
+                              : null,
                           onTap: () => Navigator.pop(context, p),
                         );
                       },
@@ -390,6 +393,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           'PITEN_VLR_TOTAL': total,
           'EPRO_DESCRICAO': product['EPRO_DESCRICAO'],
           'EPRO_COD_EAN': product['EPRO_COD_EAN'],
+          'EPRO_ESTQ_ATUAL': product['EPRO_ESTQ_ATUAL'],
         });
         _updateTotal();
       });
@@ -556,7 +560,13 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               ],
               rows: List.generate(_items.length, (index) {
                 final i = _items[index];
-                return DataRow(cells: [
+                final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
+                final rowColor = estq == 0
+                    ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
+                    : null;
+                return DataRow(
+                    color: rowColor,
+                    cells: [
                   DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
                   DataCell(
                     InkWell(
