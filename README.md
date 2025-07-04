@@ -44,10 +44,11 @@ company saved locally so that only records for the active company are
 fetched.
 
 Product photos are captured directly from the product list. When you tap the
-camera icon for a product, the app uses the device camera to take a picture,
-uploads the file to the Supabase Storage bucket `fotos-produtos` and saves the
-public URL in the `EPRO_FOTO_URL` column of `ESTQ_PRODUTO_FOTO` along with the
-corresponding `EPRO_PK` key.
+camera icon for a product, the app uses the device camera to take a picture and
+uploads the file to the Supabase Storage bucket `fotos-produtos`.
+Files are stored under `<CNPJ>/<COD_PRODUTO>` so each company has its own
+subfolder. The resulting public URL is saved in the `EPRO_FOTO_URL` column of
+`ESTQ_PRODUTO_FOTO` together with the corresponding product key.
 
 When a product is deleted, the application also removes any associated files
 from the `fotos-produtos` bucket to avoid leaving orphan images in storage.

@@ -121,12 +121,15 @@ ORDER BY p.EPRO_DESCRICAO
     final companyPk = await _getCompanyPk();
     if (companyPk != null) {
       return await db.rawQuery('''
-SELECT f.* FROM ESTQ_PRODUTO_FOTO f
+SELECT f.*, p.EPRO_COD_EAN FROM ESTQ_PRODUTO_FOTO f
 JOIN ESTQ_PRODUTO p ON f.EPRO_PK = p.EPRO_PK
 WHERE p.CEMP_PK = ?
 ''', [companyPk]);
     }
-    return await db.query('ESTQ_PRODUTO_FOTO');
+    return await db.rawQuery('''
+SELECT f.*, p.EPRO_COD_EAN FROM ESTQ_PRODUTO_FOTO f
+JOIN ESTQ_PRODUTO p ON f.EPRO_PK = p.EPRO_PK
+''');
   }
 
   /// Replaces all existing photos with the provided list.
