@@ -14,7 +14,12 @@ class SyncScreen extends StatelessWidget {
         const SnackBar(content: Text('Importação concluída'), backgroundColor: Colors.green),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Erro: \$e')));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erro: \$e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -27,7 +32,12 @@ class SyncScreen extends StatelessWidget {
         const SnackBar(content: Text('Envio concluído'), backgroundColor: Colors.green),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Erro: \$e')));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erro: \$e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
