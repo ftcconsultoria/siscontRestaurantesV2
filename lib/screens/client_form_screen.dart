@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/uppercase_input_formatter.dart';
 import '../widgets/cpf_cnpj_input_formatter.dart';
 import '../widgets/cep_input_formatter.dart';
@@ -299,6 +300,15 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     });
   }
 
+  Future<void> _openRoute() async {
+    if (_location == null) return;
+    final url = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=${_location!.latitude},${_location!.longitude}');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    }
+  }
+
   void _submit() {
     final data = <String, dynamic>{
       'CCOT_NOME': _nameController.text.toUpperCase(),
@@ -507,10 +517,22 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: _getLocation,
-                icon: const Icon(Icons.map),
-                label: const Text('Definir localização'),
+              child: Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: _getLocation,
+                    icon: const Icon(Icons.map),
+                    label: const Text('Definir localização'),
+                  ),
+                  if (_location != null) ...[
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: _openRoute,
+                      icon: const Icon(Icons.directions),
+                      label: const Text('Traçar rota'),
+                    ),
+                  ],
+                ],
               ),
             ),
             if (_location != null) ...[
