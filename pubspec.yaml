@@ -22,9 +22,10 @@ dependencies:
   http: ^1.1.0
   share_plus: ^7.2.1
   pdf: ^3.10.7
-  printing: ^5.9.0
-  geolocator: ^9.0.2
-  google_maps_flutter: ^2.2.6
+    printing: ^5.9.0
+    geolocator: ^9.0.2
+    google_maps_flutter: ^2.2.6
+    url_launcher: ^6.3.1
 
 flutter:
-  uses-material-design: true
+    uses-material-design: true
