@@ -27,23 +27,38 @@ ${companyPk != null ? 'WHERE p.CEMP_PK = ?' : ''}
 ORDER BY p.EPRO_DESCRICAO
 ''', companyPk != null ? [companyPk] : null);
 
-    return rows.map((r) {
-      final map = Map<String, dynamic>.from(r);
-      final fotoUrl = map.remove('EPRO_FOTO_URL');
-      final fotoPath = map.remove('EPRO_FOTO_PATH');
-      final fotoPk = map.remove('FOTO_PK');
-      if (fotoUrl != null || fotoPk != null) {
-        map['ESTQ_PRODUTO_FOTO'] = [
-          {
-            'EPRO_FOTO_PK': fotoPk,
-            'EPRO_PK': map['EPRO_PK'],
-            'EPRO_FOTO_URL': fotoUrl,
-            'EPRO_FOTO_PATH': fotoPath,
-          }
-        ];
+    final Map<int, Map<String, dynamic>> products = {};
+
+    for (final r in rows) {
+      final productPk = r['EPRO_PK'] as int;
+      final fotoPk = r['FOTO_PK'];
+      final fotoUrl = r['EPRO_FOTO_URL'];
+      final fotoPath = r['EPRO_FOTO_PATH'];
+
+      products.putIfAbsent(productPk, () {
+        return {
+          'EPRO_PK': r['EPRO_PK'],
+          'EPRO_DESCRICAO': r['EPRO_DESCRICAO'],
+          'EPRO_VLR_VAREJO': r['EPRO_VLR_VAREJO'],
+          'EPRO_ESTQ_ATUAL': r['EPRO_ESTQ_ATUAL'],
+          'EPRO_COD_EAN': r['EPRO_COD_EAN'],
+          'CEMP_PK': r['CEMP_PK'],
+          'ESTQ_PRODUTO_FOTO': <Map<String, dynamic>>[],
+        };
+      });
+
+      if (fotoPk != null || fotoUrl != null) {
+        (products[productPk]!['ESTQ_PRODUTO_FOTO'] as List)
+            .add({
+          'EPRO_FOTO_PK': fotoPk,
+          'EPRO_PK': productPk,
+          'EPRO_FOTO_URL': fotoUrl,
+          'EPRO_FOTO_PATH': fotoPath,
+        });
       }
-      return map;
-    }).toList();
+    }
+
+    return products.values.toList();
   }
 
   /// Inserts or updates a product record.
