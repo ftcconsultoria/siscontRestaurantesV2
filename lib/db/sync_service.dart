@@ -21,10 +21,16 @@ class SyncService {
     return company?['CEMP_PK'] as int?;
   }
 
+  Future<String?> _companyCnpj() async {
+    final company = await _companyDao.getFirst();
+    return company?['CEMP_CNPJ'] as String?;
+  }
+
   /// Pushes local changes to Supabase.
   Future<void> push() async {
     final supabase = Supabase.instance.client;
     final companyPk = await _companyPk();
+    final companyCnpj = await _companyCnpj();
 
     // push local products
     final localProducts = await _dao.getAll();
@@ -57,7 +63,10 @@ class SyncService {
         final file = File(path);
         if (await file.exists()) {
           final fileName = path.split('/').last;
-          final uploadPath = '$productPk/$fileName';
+          final productCode =
+              (photo['EPRO_COD_EAN'] ?? productPk).toString();
+          final uploadPath =
+              '${companyCnpj ?? 'sem_cnpj'}/$productCode/$fileName';
           await supabase.storage
               .from('fotos-produtos')
               .uploadBinary(uploadPath, await file.readAsBytes());
