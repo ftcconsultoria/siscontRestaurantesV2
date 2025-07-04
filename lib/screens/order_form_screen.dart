@@ -578,21 +578,26 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           const SizedBox(height: 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: DataTable(
-              border: TableBorder.all(color: Colors.grey),
-              columns: const [
-                DataColumn(label: Text('Nome')),
-                DataColumn(label: Text('Qtd')),
-                DataColumn(label: Text('Vlr Total')),
-                DataColumn(label: Text('')),
-              ],
-              rows: List.generate(_items.length, (index) {
-                final i = _items[index];
-                final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
-                final rowColor = estq == 0
-                    ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
-                    : null;
-                return DataRow(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width - 32),
+              child: DataTable(
+                border: TableBorder.all(color: Colors.grey),
+                columnSpacing: 12,
+                horizontalMargin: 8,
+                columns: const [
+                  DataColumn(label: Text('Nome')),
+                  DataColumn(label: Text('Qtd')),
+                  DataColumn(label: Text('Vlr Total')),
+                  DataColumn(label: Text('')),
+                ],
+                rows: List.generate(_items.length, (index) {
+                  final i = _items[index];
+                  final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
+                  final rowColor = estq == 0
+                      ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
+                      : null;
+                  return DataRow(
                     color: rowColor,
                     cells: [
                   DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
