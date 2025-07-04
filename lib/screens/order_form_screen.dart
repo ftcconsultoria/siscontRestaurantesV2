@@ -359,6 +359,14 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   Future<void> _addItem() async {
     final product = await _showProductSearch();
     if (product == null) return;
+    final stock = (product['EPRO_ESTQ_ATUAL'] as num? ?? 0).toDouble();
+    final messenger = ScaffoldMessenger.of(context);
+    if (stock <= 0) {
+      messenger.showSnackBar(const SnackBar(
+          content: Text('Produto sem estoque disponível'),
+          backgroundColor: Colors.red));
+      return;
+    }
     final qtyController = TextEditingController(text: '1');
     final confirmed = await showDialog<bool>(
       context: context,
@@ -383,6 +391,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     );
     if (confirmed == true) {
       final qty = double.tryParse(qtyController.text.replaceAll(',', '.')) ?? 0;
+      if (qty > stock) {
+        messenger.showSnackBar(SnackBar(
+            content: Text('Quantidade maior que estoque disponível ($stock)'),
+            backgroundColor: Colors.red));
+        return;
+      }
       final unit = (product['EPRO_VLR_VAREJO'] as num? ?? 0).toDouble();
       final total = qty * unit;
       setState(() {
@@ -409,6 +423,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
   Future<void> _editItemQuantity(int index) async {
     final item = _items[index];
+    final stock = (item['EPRO_ESTQ_ATUAL'] as num? ?? 0).toDouble();
     final controller =
         TextEditingController(text: item['PITEN_QTD']?.toString() ?? '0');
     final confirmed = await showDialog<bool>(
@@ -435,6 +450,19 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     if (confirmed == true) {
       final qty = double.tryParse(controller.text.replaceAll(',', '.')) ??
           item['PITEN_QTD'];
+      final messenger = ScaffoldMessenger.of(context);
+      if (stock <= 0) {
+        messenger.showSnackBar(const SnackBar(
+            content: Text('Produto sem estoque disponível'),
+            backgroundColor: Colors.red));
+        return;
+      }
+      if (qty > stock) {
+        messenger.showSnackBar(SnackBar(
+            content: Text('Quantidade maior que estoque disponível ($stock)'),
+            backgroundColor: Colors.red));
+        return;
+      }
       final unit = (item['PITEN_VLR_UNITARIO'] as num? ?? 0).toDouble();
       setState(() {
         _items[index]['PITEN_QTD'] = qty;
