@@ -122,6 +122,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _ufController.dispose();
     _latController.dispose();
     _lonController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
