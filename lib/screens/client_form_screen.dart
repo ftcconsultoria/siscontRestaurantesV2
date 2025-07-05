@@ -400,10 +400,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                     focusNode: _cnpjFocusNode,
                     decoration: InputDecoration(
                       labelText: _tipoPessoa == 'FISICA' ? 'CPF' : 'CNPJ',
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: _lookupCnpj,
-                      ),
                     ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
