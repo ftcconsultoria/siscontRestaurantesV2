@@ -152,7 +152,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
-              Text('Aguardando dados da Receita'),
+              Text('Aguarde, Consultando CNPJ'),
             ],
           ),
         ),
