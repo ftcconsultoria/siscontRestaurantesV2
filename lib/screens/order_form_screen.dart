@@ -592,31 +592,33 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                   DataColumn(label: Text('')),
                 ],
                 rows: List.generate(_items.length, (index) {
-                  final i = _items[index];
-                  final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
-                  final rowColor = estq == 0
-                      ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
-                      : null;
-                  return DataRow(
-                    color: rowColor,
-                    cells: [
-                  DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
-                  DataCell(
-                    InkWell(
-                      onDoubleTap: () => _editItemQuantity(index),
-                      child: Text('${i['PITEN_QTD']}'),
+  final i = _items[index];
+  final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
+  final rowColor = estq == 0
+      ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
+      : null;
+                return DataRow(
+                  color: rowColor,
+                  cells: [
+                    DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
+                    DataCell(
+                      InkWell(
+                        onDoubleTap: () => _editItemQuantity(index),
+                        child: Text('${i['PITEN_QTD']}'),
+                      ),
                     ),
-                  ),
-                  DataCell(Text('${i['PITEN_VLR_TOTAL']}')),
-                  DataCell(
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => _removeItem(index),
+                    DataCell(Text('${i['PITEN_VLR_TOTAL']}')),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _removeItem(index),
+                      ),
                     ),
-                  ),
-                ]);
+                  ],
+                );
               }),
             ),
+          ),
           ),
           Align(
             alignment: Alignment.centerLeft,
@@ -625,7 +627,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Adicionar Produto'),
             ),
-          ),
+          ),          
         ],
       ),
     );
