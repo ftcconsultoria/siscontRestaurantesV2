@@ -99,10 +99,12 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (_companyName != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    alignment: Alignment.center,
                     child: Text(
                       _companyName!,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
