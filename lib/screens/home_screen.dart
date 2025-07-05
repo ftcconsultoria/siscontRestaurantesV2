@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
   /// Builds the main menu with navigation options and sync actions.
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Painel ERP')),
+      appBar: AppBar(title: const Text('Painel Mobile')),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -98,7 +98,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       body: const Center(
-        child: Text('Bem-vindo ao ERP Mobile'),
+        child: Text('SISCONT Mobile'),
       ),
     );
   }
