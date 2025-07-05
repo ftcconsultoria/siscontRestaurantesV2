@@ -44,6 +44,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late String _tipoPessoa;
   LatLng? _location;
   GoogleMapController? _mapController;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -133,6 +134,37 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     }
   }
 
+  /// Displays a modal progress indicator and returns a function to close it.
+  VoidCallback _showLoading(String message) {
+    if (_loading) {
+      return () {};
+    }
+    _loading = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: SizedBox(
+          height: 80,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(message),
+            ],
+          ),
+        ),
+      ),
+    );
+    return () {
+      if (_loading && mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      _loading = false;
+    };
+  }
+
   Future<void> _lookupCnpj() async {
     final cnpj = _cnpjController.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (cnpj.isEmpty) return;
@@ -142,23 +174,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           const SnackBar(content: Text('Sem conexão com a internet')));
       return;
     }
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: SizedBox(
-          height: 80,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Aguarde, Consultando CNPJ'),
-            ],
-          ),
-        ),
-      ),
-    );
+    final close = _showLoading('Aguarde, Consultando CNPJ');
     try {
       final url = Uri.parse('https://publica.cnpj.ws/cnpj/' + cnpj);
       final resp = await http.get(url);
@@ -211,9 +227,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       messenger
           .showSnackBar(SnackBar(content: Text('Erro ao consultar CNPJ: $e')));
     } finally {
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
+      close();
     }
   }
 
@@ -226,23 +240,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           const SnackBar(content: Text('Sem conexão com a internet')));
       return;
     }
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: SizedBox(
-          height: 80,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Consultando CEP'),
-            ],
-          ),
-        ),
-      ),
-    );
+    final close = _showLoading('Consultando CEP');
     try {
       final url = Uri.parse('https://viacep.com.br/ws/' + cep + '/json/');
       final resp = await http.get(url);
@@ -276,9 +274,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       messenger
           .showSnackBar(SnackBar(content: Text('Erro ao consultar CEP: $e')));
     } finally {
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
+      close();
     }
   }
 
