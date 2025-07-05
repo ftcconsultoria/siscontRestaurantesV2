@@ -43,6 +43,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late final TextEditingController _lonController;
   late String _tipoPessoa;
   LatLng? _location;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -297,6 +298,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       _latController.text = position.latitude.toString();
       _lonController.text = position.longitude.toString();
       _location = LatLng(position.latitude, position.longitude);
+      _mapController?.animateCamera(CameraUpdate.newLatLng(_location!));
     });
   }
 
@@ -307,6 +309,22 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     }
+  }
+
+  void _clearLocation() {
+    setState(() {
+      _location = null;
+      _latController.clear();
+      _lonController.clear();
+    });
+  }
+
+  void _zoomIn() {
+    _mapController?.animateCamera(CameraUpdate.zoomIn());
+  }
+
+  void _zoomOut() {
+    _mapController?.animateCamera(CameraUpdate.zoomOut());
   }
 
   void _submit() {
@@ -532,6 +550,12 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                       icon: const Icon(Icons.directions),
                       label: const Text('Traçar rota'),
                     ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: _clearLocation,
+                      icon: const Icon(Icons.delete),
+                      label: const Text('Remover ponto'),
+                    ),
                   ],
                 ],
               ),
@@ -540,21 +564,52 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               const SizedBox(height: 8),
               SizedBox(
                 height: 200,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: _location!,
-                    zoom: 16,
-                  ),
-                  markers: {
-                    Marker(markerId: const MarkerId('loc'), position: _location!)
-                  },
-                  onTap: (pos) {
-                    setState(() {
-                      _location = pos;
-                      _latController.text = pos.latitude.toString();
-                      _lonController.text = pos.longitude.toString();
-                    });
-                  },
+                child: Stack(
+                  children: [
+                    GoogleMap(
+                      onMapCreated: (c) => _mapController = c,
+                      initialCameraPosition: CameraPosition(
+                        target: _location!,
+                        zoom: 16,
+                      ),
+                      zoomControlsEnabled: true,
+                      markers: {
+                        Marker(
+                            markerId: const MarkerId('loc'),
+                            position: _location!),
+                      },
+                      onTap: (pos) {
+                        setState(() {
+                          _location = pos;
+                          _latController.text = pos.latitude.toString();
+                          _lonController.text = pos.longitude.toString();
+                          _mapController?.animateCamera(
+                              CameraUpdate.newLatLng(_location!));
+                        });
+                      },
+                    ),
+                    Positioned(
+                      right: 4,
+                      bottom: 4,
+                      child: Column(
+                        children: [
+                          FloatingActionButton(
+                            heroTag: 'zoom_in',
+                            mini: true,
+                            onPressed: _zoomIn,
+                            child: const Icon(Icons.zoom_in),
+                          ),
+                          const SizedBox(height: 4),
+                          FloatingActionButton(
+                            heroTag: 'zoom_out',
+                            mini: true,
+                            onPressed: _zoomOut,
+                            child: const Icon(Icons.zoom_out),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
