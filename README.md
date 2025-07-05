@@ -72,3 +72,6 @@ create this table is available at `sql/create_pedi_itens.sql`. When editing an
 order the application calculates `PDOC_VLR_TOTAL` automatically from the sum
 of its items. These order records and their items are also synchronized with
 Supabase when using the sync screen.
+
+The client form displays a map using the `google_maps_flutter` plugin, which
+has been upgraded to version 2.12.3.
