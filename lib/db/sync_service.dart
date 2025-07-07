@@ -8,6 +8,7 @@ import 'company_dao.dart';
 import 'contact_dao.dart';
 import 'order_dao.dart';
 import 'order_item_dao.dart';
+import 'log_event_dao.dart';
 
 class SyncService {
   final _dao = ProductDao();
@@ -15,6 +16,7 @@ class SyncService {
   final _contactDao = ContactDao();
   final _orderDao = OrderDao();
   final _itemDao = OrderItemDao();
+  final _logDao = LogEventDao();
 
   Future<int?> _companyPk() async {
     final company = await _companyDao.getFirst();
@@ -109,6 +111,15 @@ class SyncService {
         }
         await _orderDao.updateStatus(orderPk, 'ENVIADO_CLOUD');
       }
+    }
+
+    // push local logs
+    final localLogs = await _logDao.getAll();
+    for (final log in localLogs) {
+      await supabase.from('SIS_LOG_EVENTO').insert(log);
+    }
+    if (localLogs.isNotEmpty) {
+      await _logDao.deleteAll();
     }
   }
 

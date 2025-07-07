@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import '../db/company_dao.dart';
 import '../db/user_dao.dart';
+import '../db/log_event_dao.dart';
 import 'config_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/uppercase_input_formatter.dart';
@@ -19,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final CompanyDao _companyDao = CompanyDao();
   final UserDao _userDao = UserDao();
+  final LogEventDao _logDao = LogEventDao();
   String? _companyName;
 
   @override
@@ -57,10 +59,20 @@ class _LoginScreenState extends State<LoginScreen> {
       messenger.showSnackBar(const SnackBar(
           content: Text('Usuário ou senha inválidos'),
           backgroundColor: Colors.red));
+      await _logDao.insert(
+          entidade: 'LOGIN',
+          tipo: 'ERRO',
+          tela: 'LoginScreen',
+          mensagem: 'Usuário ou senha inválidos');
       return;
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('logged_user_pk', user['CUSU_PK'] as int);
+    await _logDao.insert(
+        entidade: 'LOGIN',
+        tipo: 'SUCESSO',
+        tela: 'LoginScreen',
+        mensagem: 'Login realizado');
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
