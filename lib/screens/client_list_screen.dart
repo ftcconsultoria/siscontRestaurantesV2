@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'client_form_screen.dart';
 import '../db/contact_dao.dart';
+import '../db/log_event_dao.dart';
 
 class ClientListScreen extends StatefulWidget {
   const ClientListScreen({super.key});
@@ -11,6 +12,7 @@ class ClientListScreen extends StatefulWidget {
 
 class _ClientListScreenState extends State<ClientListScreen> {
   final ContactDao _dao = ContactDao();
+  final LogEventDao _logDao = LogEventDao();
   late Future<List<Map<String, dynamic>>> _clientsFuture;
   final TextEditingController _searchController = TextEditingController();
   String _searchType = 'Nome';
@@ -36,7 +38,26 @@ class _ClientListScreenState extends State<ClientListScreen> {
   }
 
   Future<void> _addOrUpdate(Map<String, dynamic> data) async {
-    await _dao.insertOrUpdate(data);
+    final messenger = ScaffoldMessenger.of(context);
+    final isNew = !data.containsKey('CCOT_PK');
+    try {
+      await _dao.insertOrUpdate(data);
+      if (isNew) {
+        await _logDao.insert(
+            entidade: 'CLIENTE',
+            tipo: 'NOVO',
+            tela: 'ClientListScreen');
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Erro ao salvar cliente: $e'), backgroundColor: Colors.red),
+      );
+      await _logDao.insert(
+          entidade: 'CLIENTE',
+          tipo: 'ERRO',
+          tela: 'ClientListScreen',
+          mensagem: e.toString());
+    }
     await _refresh();
   }
 

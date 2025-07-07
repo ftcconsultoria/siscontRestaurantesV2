@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../db/order_dao.dart';
 import '../db/order_item_dao.dart';
+import '../db/log_event_dao.dart';
 import 'order_form_screen.dart';
 
 class OrderListScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class OrderListScreen extends StatefulWidget {
 class _OrderListScreenState extends State<OrderListScreen> {
   final OrderDao _dao = OrderDao();
   final OrderItemDao _itemDao = OrderItemDao();
+  final LogEventDao _logDao = LogEventDao();
   late Future<List<Map<String, dynamic>>> _ordersFuture;
 
   @override
@@ -37,12 +39,20 @@ class _OrderListScreenState extends State<OrderListScreen> {
   Future<void> _addOrUpdate(
       Map<String, dynamic> order, List<Map<String, dynamic>> items) async {
     final messenger = ScaffoldMessenger.of(context);
+    final isNew = !order.containsKey('PDOC_PK');
     try {
       final id = await _dao.insertOrUpdate(order);
       await _itemDao.replaceItems(id, items);
       messenger.showSnackBar(
         const SnackBar(content: Text('Produtos adicionados ao pedido')),
       );
+      if (isNew) {
+        await _logDao.insert(
+            entidade: 'PEDIDO',
+            chave: id,
+            tipo: 'NOVO',
+            tela: 'OrderListScreen');
+      }
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -50,6 +60,11 @@ class _OrderListScreenState extends State<OrderListScreen> {
           backgroundColor: Colors.red,
         ),
       );
+      await _logDao.insert(
+          entidade: 'PEDIDO',
+          tipo: 'ERRO',
+          tela: 'OrderListScreen',
+          mensagem: e.toString());
     }
     await _refresh();
   }
