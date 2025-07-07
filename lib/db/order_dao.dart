@@ -31,7 +31,7 @@ class OrderDao {
     final companyPk = await _getCompanyPk();
     final rows = await db.rawQuery('''
 SELECT d.PDOC_PK, d.PDOC_DT_EMISSAO, d.PDOC_VLR_TOTAL,
-       d.CCOT_PK, c.CCOT_NOME, d.CCOT_VEND_PK
+       d.CCOT_PK, c.CCOT_NOME, d.CCOT_VEND_PK, d.PDOC_ESTADO_PEDIDO
 FROM PEDI_DOCUMENTOS d
 LEFT JOIN CADE_CONTATO c ON d.CCOT_PK = c.CCOT_PK
 ${companyPk != null ? 'WHERE d.CEMP_PK = ?' : ''}
@@ -50,6 +50,7 @@ ORDER BY d.PDOC_PK DESC
     }
     if (!data.containsKey('PDOC_PK')) {
       data['CCOT_VEND_PK'] = data['CCOT_VEND_PK'] ?? await _getVendorPk();
+      data['PDOC_ESTADO_PEDIDO'] = 'CRIADO_MOBILE';
     }
 
     if (data.containsKey('PDOC_PK')) {
@@ -85,6 +86,24 @@ ORDER BY d.PDOC_PK DESC
           conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
+  }
+
+  Future<List<Map<String, dynamic>>> getPending() async {
+    final db = await _db;
+    final companyPk = await _getCompanyPk();
+    final where = StringBuffer('(PDOC_ESTADO_PEDIDO = ? OR PDOC_ESTADO_PEDIDO IS NULL)');
+    final args = <dynamic>['CRIADO_MOBILE'];
+    if (companyPk != null) {
+      where.write(' AND CEMP_PK = ?');
+      args.add(companyPk);
+    }
+    return await db.query('PEDI_DOCUMENTOS', where: where.toString(), whereArgs: args);
+  }
+
+  Future<void> updateStatus(int orderPk, String status) async {
+    final db = await _db;
+    await db.update('PEDI_DOCUMENTOS', {'PDOC_ESTADO_PEDIDO': status},
+        where: 'PDOC_PK = ?', whereArgs: [orderPk]);
   }
 
   Future<double> getTotalInRange(DateTime start, DateTime end) async {

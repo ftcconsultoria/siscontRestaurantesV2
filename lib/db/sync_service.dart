@@ -88,20 +88,26 @@ class SyncService {
     }
 
     // push local orders
-    final localOrders = await _orderDao.getAll();
+    final localOrders = await _orderDao.getPending();
     for (final o in localOrders) {
-      final orderData = Map<String, dynamic>.from(o)..remove('CCOT_NOME');
+      final orderPk = o['PDOC_PK'] as int?;
+      final orderData = Map<String, dynamic>.from(o);
+      orderData.remove('CCOT_NOME');
       if (companyPk != null) {
         orderData['CEMP_PK'] = companyPk;
       }
+      orderData['PDOC_ESTADO_PEDIDO'] = 'ENVIADO_CLOUD';
       await supabase.from('PEDI_DOCUMENTOS').upsert(orderData);
 
-      final items = await _itemDao.getByOrder(o['PDOC_PK'] as int);
-      for (final item in items) {
-        final itemData = Map<String, dynamic>.from(item)
-          ..remove('EPRO_DESCRICAO')
-          ..remove('EPRO_COD_EAN');
-        await supabase.from('PEDI_ITENS').upsert(itemData);
+      if (orderPk != null) {
+        final items = await _itemDao.getByOrder(orderPk);
+        for (final item in items) {
+          final itemData = Map<String, dynamic>.from(item)
+            ..remove('EPRO_DESCRICAO')
+            ..remove('EPRO_COD_EAN');
+          await supabase.from('PEDI_ITENS').upsert(itemData);
+        }
+        await _orderDao.updateStatus(orderPk, 'ENVIADO_CLOUD');
       }
     }
   }
@@ -169,12 +175,12 @@ class SyncService {
     final remoteOrders = await (companyPk != null
         ? baseQuery
             .select(
-                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK')
+                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO')
             .eq('CEMP_PK', companyPk)
             .order('PDOC_PK', ascending: false)
         : baseQuery
             .select(
-                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK')
+                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO')
             .order('PDOC_PK', ascending: false));
 
     final orders = List<Map<String, dynamic>>.from(remoteOrders);

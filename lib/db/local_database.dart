@@ -31,7 +31,7 @@ class LocalDatabase {
     final dbPath = await path;
     return openDatabase(
       dbPath,
-      version: 10,
+      version: 11,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -100,6 +100,7 @@ CREATE TABLE PEDI_DOCUMENTOS (
   PDOC_VLR_TOTAL REAL,
   CCOT_PK INTEGER,
   CCOT_VEND_PK INTEGER,
+  PDOC_ESTADO_PEDIDO TEXT,
   FOREIGN KEY(CCOT_PK) REFERENCES CADE_CONTATO(CCOT_PK),
   FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
 )
@@ -208,6 +209,10 @@ CREATE TABLE PEDI_ITENS (
               'ALTER TABLE CADE_USUARIO ADD COLUMN CCOT_VEND_PK INTEGER');
           await db.execute(
               'ALTER TABLE PEDI_DOCUMENTOS ADD COLUMN CCOT_VEND_PK INTEGER');
+        }
+        if (oldVersion < 11) {
+          await db.execute(
+              'ALTER TABLE PEDI_DOCUMENTOS ADD COLUMN PDOC_ESTADO_PEDIDO TEXT');
         }
       },
     );
