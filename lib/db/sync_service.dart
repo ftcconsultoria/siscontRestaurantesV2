@@ -33,6 +33,7 @@ class SyncService {
     void Function(double progress)? onProgress,
     void Function(String status)? onStatus,
   }) async {
+    try {
     final supabase = Supabase.instance.client;
     final companyPk = await _companyPk();
     final companyCnpj = await _companyCnpj();
@@ -159,10 +160,21 @@ class SyncService {
       await _logDao.deleteAll();
     }
     report();
+    } catch (e, s) {
+      await _logDao.insert(
+        entidade: 'SYNC',
+        tipo: 'ERRO_EXPORT',
+        tela: 'SyncService',
+        mensagem: e.toString(),
+        dados: {'stack': s.toString()},
+      );
+      rethrow;
+    }
   }
 
   /// Pulls remote data from Supabase and updates local tables.
   Future<void> pull({void Function(double progress)? onProgress}) async {
+    try {
     final supabase = Supabase.instance.client;
     final companyPk = await _companyPk();
 
@@ -262,11 +274,32 @@ class SyncService {
     }
     step++;
     report();
+    } catch (e, s) {
+      await _logDao.insert(
+        entidade: 'SYNC',
+        tipo: 'ERRO_IMPORT',
+        tela: 'SyncService',
+        mensagem: e.toString(),
+        dados: {'stack': s.toString()},
+      );
+      rethrow;
+    }
   }
 
   /// Performs a push followed by a pull.
   Future<void> sync() async {
-    await push();
-    await pull();
+    try {
+      await push();
+      await pull();
+    } catch (e, s) {
+      await _logDao.insert(
+        entidade: 'SYNC',
+        tipo: 'ERRO_SYNC',
+        tela: 'SyncService',
+        mensagem: e.toString(),
+        dados: {'stack': s.toString()},
+      );
+      rethrow;
+    }
   }
 }
