@@ -4,6 +4,7 @@ import '../db/company_dao.dart';
 import '../db/user_dao.dart';
 import 'config_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/uppercase_input_formatter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -130,6 +131,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: Icon(Icons.mail_outline),
                             border: OutlineInputBorder(),
                           ),
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          textCapitalization: TextCapitalization.characters,
                         ),
                         const SizedBox(height: 16),
                         TextField(
