@@ -9,6 +9,7 @@ import '../db/company_dao.dart';
 import '../db/user_dao.dart';
 import '../db/local_database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../db/log_event_dao.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -21,6 +22,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   final TextEditingController _cnpjController = TextEditingController();
   final CompanyDao _companyDao = CompanyDao();
   final UserDao _userDao = UserDao();
+  final LogEventDao _logDao = LogEventDao();
   String? _companyName;
 
   @override
@@ -75,6 +77,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
       }
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Erro: $e')));
+      await _logDao.insert(
+          entidade: 'CONFIG',
+          tipo: 'ERRO_EMPRESA',
+          tela: 'ConfigScreen',
+          mensagem: e.toString());
     }
   }
 
@@ -94,6 +101,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
           text: 'ERP Mobile - backup do banco de dados');
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Erro ao exportar: $e')));
+      await _logDao.insert(
+          entidade: 'CONFIG',
+          tipo: 'ERRO_EXPORT',
+          tela: 'ConfigScreen',
+          mensagem: e.toString());
     }
   }
 
@@ -119,6 +131,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
           const SnackBar(content: Text('Backup importado com sucesso')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Erro ao importar: $e')));
+      await _logDao.insert(
+          entidade: 'CONFIG',
+          tipo: 'ERRO_IMPORT',
+          tela: 'ConfigScreen',
+          mensagem: e.toString());
     }
   }
 

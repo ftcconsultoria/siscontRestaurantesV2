@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'barcode_scanner_screen.dart';
 import '../widgets/product_form_dialog.dart';
 import '../db/product_dao.dart';
+import '../db/log_event_dao.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -26,6 +27,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   List<Map<String, dynamic>> _products = [];
   final ImagePicker _picker = ImagePicker();
   final ProductDao _dao = ProductDao();
+  final LogEventDao _logDao = LogEventDao();
 
   @override
   /// Initializes the state and loads the initial product list.
@@ -51,7 +53,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   /// Inserts or updates a product, then refreshes the list.
   Future<void> _addOrUpdateProduct(Map<String, dynamic> data) async {
-    await _dao.insertOrUpdate(data);
+    final messenger = ScaffoldMessenger.of(context);
+    final isNew = !data.containsKey('EPRO_PK');
+    try {
+      await _dao.insertOrUpdate(data);
+      if (isNew) {
+        await _logDao.insert(
+            entidade: 'PRODUTO',
+            tipo: 'NOVO',
+            tela: 'ProductListScreen');
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Erro ao salvar produto: $e'), backgroundColor: Colors.red),
+      );
+      await _logDao.insert(
+          entidade: 'PRODUTO',
+          tipo: 'ERRO',
+          tela: 'ProductListScreen',
+          mensagem: e.toString());
+    }
     await _refreshProducts();
   }
 

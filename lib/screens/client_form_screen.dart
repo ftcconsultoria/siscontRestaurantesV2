@@ -10,6 +10,7 @@ import '../widgets/uppercase_input_formatter.dart';
 import '../widgets/cpf_cnpj_input_formatter.dart';
 import '../widgets/cep_input_formatter.dart';
 import '../utils/validators.dart';
+import '../db/log_event_dao.dart';
 
 class ClientFormScreen extends StatefulWidget {
   final Map<String, dynamic>? client;
@@ -45,6 +46,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   LatLng? _location;
   GoogleMapController? _mapController;
   bool _loading = false;
+  final LogEventDao _logDao = LogEventDao();
 
   @override
   void initState() {
@@ -227,6 +229,11 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     } catch (e) {
       messenger
           .showSnackBar(SnackBar(content: Text('Erro ao consultar CNPJ: $e')));
+      await _logDao.insert(
+          entidade: 'CLIENTE_FORM',
+          tipo: 'ERRO_CNPJ',
+          tela: 'ClientFormScreen',
+          mensagem: e.toString());
     } finally {
       close();
     }
@@ -274,6 +281,11 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     } catch (e) {
       messenger
           .showSnackBar(SnackBar(content: Text('Erro ao consultar CEP: $e')));
+      await _logDao.insert(
+          entidade: 'CLIENTE_FORM',
+          tipo: 'ERRO_CEP',
+          tela: 'ClientFormScreen',
+          mensagem: e.toString());
     } finally {
       close();
     }
