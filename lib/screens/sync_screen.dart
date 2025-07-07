@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../db/sync_service.dart';
+import '../db/log_event_dao.dart';
 
 /// Screen that provides buttons to import or export data with Supabase.
 class SyncScreen extends StatelessWidget {
   const SyncScreen({super.key});
+
+  final LogEventDao _logDao = LogEventDao();
 
   Future<void> _import(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -29,6 +32,11 @@ class SyncScreen extends StatelessWidget {
       messenger.showSnackBar(
         const SnackBar(content: Text('Importação concluída'), backgroundColor: Colors.green),
       );
+      await _logDao.insert(
+          entidade: 'SYNC',
+          tipo: 'IMPORT',
+          tela: 'SyncScreen',
+          mensagem: 'Importação concluída');
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -36,6 +44,11 @@ class SyncScreen extends StatelessWidget {
           backgroundColor: Colors.red,
         ),
       );
+      await _logDao.insert(
+          entidade: 'SYNC',
+          tipo: 'ERRO_IMPORT',
+          tela: 'SyncScreen',
+          mensagem: e.toString());
     } finally {
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
@@ -67,6 +80,11 @@ class SyncScreen extends StatelessWidget {
       messenger.showSnackBar(
         const SnackBar(content: Text('Envio concluído'), backgroundColor: Colors.green),
       );
+      await _logDao.insert(
+          entidade: 'SYNC',
+          tipo: 'EXPORT',
+          tela: 'SyncScreen',
+          mensagem: 'Envio concluído');
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -74,6 +92,11 @@ class SyncScreen extends StatelessWidget {
           backgroundColor: Colors.red,
         ),
       );
+      await _logDao.insert(
+          entidade: 'SYNC',
+          tipo: 'ERRO_EXPORT',
+          tela: 'SyncScreen',
+          mensagem: e.toString());
     } finally {
       if (Navigator.canPop(context)) {
         Navigator.pop(context);

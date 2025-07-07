@@ -31,7 +31,7 @@ class LocalDatabase {
     final dbPath = await path;
     return openDatabase(
       dbPath,
-      version: 11,
+      version: 12,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -115,6 +115,20 @@ CREATE TABLE PEDI_ITENS (
   PITEN_VLR_TOTAL REAL,
   FOREIGN KEY(EPRO_PK) REFERENCES ESTQ_PRODUTO(EPRO_PK),
   FOREIGN KEY(PDOC_PK) REFERENCES PEDI_DOCUMENTOS(PDOC_PK)
+)
+''');
+        await db.execute('''
+CREATE TABLE SIS_LOG_EVENTO (
+  LOG_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CEMP_PK INTEGER NOT NULL,
+  CUSU_PK INTEGER,
+  LOG_ENTIDADE TEXT NOT NULL,
+  LOG_CHAVE INTEGER,
+  LOG_TIPO TEXT NOT NULL,
+  LOG_TELA TEXT,
+  LOG_MENSAGEM TEXT,
+  LOG_DADOS TEXT,
+  LOG_DT TEXT DEFAULT CURRENT_TIMESTAMP
 )
 ''');
       },
@@ -213,6 +227,21 @@ CREATE TABLE PEDI_ITENS (
         if (oldVersion < 11) {
           await db.execute(
               'ALTER TABLE PEDI_DOCUMENTOS ADD COLUMN PDOC_ESTADO_PEDIDO TEXT');
+        }
+        if (oldVersion < 12) {
+          await db.execute('''
+CREATE TABLE SIS_LOG_EVENTO (
+  LOG_PK INTEGER PRIMARY KEY AUTOINCREMENT,
+  CEMP_PK INTEGER NOT NULL,
+  CUSU_PK INTEGER,
+  LOG_ENTIDADE TEXT NOT NULL,
+  LOG_CHAVE INTEGER,
+  LOG_TIPO TEXT NOT NULL,
+  LOG_TELA TEXT,
+  LOG_MENSAGEM TEXT,
+  LOG_DADOS TEXT,
+  LOG_DT TEXT DEFAULT CURRENT_TIMESTAMP
+)''');
         }
       },
     );
