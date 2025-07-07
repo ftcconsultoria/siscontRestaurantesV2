@@ -46,4 +46,17 @@ class UserDao {
     if (result.isNotEmpty) return result.first;
     return null;
   }
+
+  /// Returns a user by its primary key or null if not found.
+  Future<Map<String, dynamic>?> getByPk(int pk) async {
+    final db = await _db;
+    final result = await db.query(
+      'CADE_USUARIO',
+      where: 'CUSU_PK = ?',
+      whereArgs: [pk],
+      limit: 1,
+    );
+    if (result.isNotEmpty) return result.first;
+    return null;
+  }
 }

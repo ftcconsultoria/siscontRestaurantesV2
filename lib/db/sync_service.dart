@@ -169,12 +169,12 @@ class SyncService {
     final remoteOrders = await (companyPk != null
         ? baseQuery
             .select(
-                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK')
+                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK')
             .eq('CEMP_PK', companyPk)
             .order('PDOC_PK', ascending: false)
         : baseQuery
             .select(
-                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK')
+                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK')
             .order('PDOC_PK', ascending: false));
 
     final orders = List<Map<String, dynamic>>.from(remoteOrders);
