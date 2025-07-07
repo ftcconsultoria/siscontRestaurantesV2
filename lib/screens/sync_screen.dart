@@ -5,7 +5,7 @@ import '../widgets/progress_dialog.dart';
 
 /// Screen that provides buttons to import or export data with Supabase.
 class SyncScreen extends StatelessWidget {
-  const SyncScreen({super.key});
+  SyncScreen({super.key});
 
   final LogEventDao _logDao = LogEventDao();
 

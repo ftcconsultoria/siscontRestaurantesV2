@@ -77,7 +77,7 @@ class HomeScreen extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const SyncScreen()),
+                  MaterialPageRoute(builder: (_) => SyncScreen()),
                 );
               },
             ),
