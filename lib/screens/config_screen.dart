@@ -59,7 +59,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
         await _companyDao.setCompany(result);
         final users = await supabase
             .from('CADE_USUARIO')
-            .select('CUSU_PK, CUSU_USUARIO, CUSU_SENHA, CEMP_PK')
+            .select(
+                'CUSU_PK, CUSU_USUARIO, CUSU_SENHA, CEMP_PK, CCOT_VEND_PK')
             .eq('CEMP_PK', result['CEMP_PK']);
         await _userDao.replaceAll(List<Map<String, dynamic>>.from(users));
         if (mounted) {
