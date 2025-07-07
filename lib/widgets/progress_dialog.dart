@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class ProgressDialog extends StatefulWidget {
   final ValueListenable<String> message;
