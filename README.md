@@ -74,7 +74,11 @@ create this table is available at `sql/create_pedi_itens.sql`. When editing an
 order the application calculates `PDOC_VLR_TOTAL` automatically from the sum
 of its items. Each new order automatically stores the vendor contact from the
 logged user in the `CCOT_VEND_PK` column. These order records and their items
-are also synchronized with Supabase when using the sync screen.
+are also synchronized with Supabase when using the sync screen. Each order
+includes a `PDOC_ESTADO_PEDIDO` column to track its status. New orders are
+saved with the value `CRIADO_MOBILE` and upon synchronization the status is
+changed to `ENVIADO_CLOUD`. Only orders in the `CRIADO_MOBILE` state (or with
+no status) are uploaded.
 
 The client form displays a map using the `google_maps_flutter` plugin, which
 has been upgraded to version 2.12.3.
