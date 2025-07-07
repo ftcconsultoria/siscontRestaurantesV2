@@ -12,11 +12,12 @@ class SyncScreen extends StatelessWidget {
   Future<void> _import(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final progress = ValueNotifier<double>(0);
+    final message = ValueNotifier<String>('Importando...');
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => ProgressDialog(
-        message: 'Importando...',
+        message: message,
         progress: progress,
       ),
     );
@@ -47,22 +48,27 @@ class SyncScreen extends StatelessWidget {
         Navigator.pop(context);
       }
       progress.dispose();
+      message.dispose();
     }
   }
 
   Future<void> _export(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final progress = ValueNotifier<double>(0);
+    final message = ValueNotifier<String>('Enviando...');
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => ProgressDialog(
-        message: 'Enviando...',
+        message: message,
         progress: progress,
       ),
     );
     try {
-      await SyncService().push(onProgress: (v) => progress.value = v);
+      await SyncService().push(
+        onProgress: (v) => progress.value = v,
+        onStatus: (s) => message.value = 'Enviando $s...',
+      );
       messenger.showSnackBar(
         const SnackBar(content: Text('Envio concluído'), backgroundColor: Colors.green),
       );
@@ -88,6 +94,7 @@ class SyncScreen extends StatelessWidget {
         Navigator.pop(context);
       }
       progress.dispose();
+      message.dispose();
     }
   }
 
