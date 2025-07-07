@@ -2,6 +2,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
 import 'local_database.dart';
 import 'company_dao.dart';
+import 'user_dao.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'order_item_dao.dart';
 
@@ -9,10 +11,19 @@ class OrderDao {
   Future<Database> get _db async => await LocalDatabase.instance;
 
   final CompanyDao _companyDao = CompanyDao();
+  final UserDao _userDao = UserDao();
 
   Future<int?> _getCompanyPk() async {
     final company = await _companyDao.getFirst();
     return company?['CEMP_PK'] as int?;
+  }
+
+  Future<int?> _getVendorPk() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userPk = prefs.getInt('logged_user_pk');
+    if (userPk == null) return null;
+    final user = await _userDao.getByPk(userPk);
+    return user?['CCOT_VEND_PK'] as int?;
   }
 
   Future<List<Map<String, dynamic>>> getAll() async {
@@ -20,7 +31,7 @@ class OrderDao {
     final companyPk = await _getCompanyPk();
     final rows = await db.rawQuery('''
 SELECT d.PDOC_PK, d.PDOC_DT_EMISSAO, d.PDOC_VLR_TOTAL,
-       d.CCOT_PK, c.CCOT_NOME
+       d.CCOT_PK, c.CCOT_NOME, d.CCOT_VEND_PK
 FROM PEDI_DOCUMENTOS d
 LEFT JOIN CADE_CONTATO c ON d.CCOT_PK = c.CCOT_PK
 ${companyPk != null ? 'WHERE d.CEMP_PK = ?' : ''}
@@ -36,6 +47,9 @@ ORDER BY d.PDOC_PK DESC
     final companyPk = data['CEMP_PK'] ?? await _getCompanyPk();
     if (companyPk != null) {
       data['CEMP_PK'] = companyPk;
+    }
+    if (!data.containsKey('PDOC_PK')) {
+      data['CCOT_VEND_PK'] = data['CCOT_VEND_PK'] ?? await _getVendorPk();
     }
 
     if (data.containsKey('PDOC_PK')) {

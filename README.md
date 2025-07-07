@@ -37,6 +37,8 @@ after the company is set up and validated against this table. When the
 configuration screen loads a company by CNPJ it now also retrieves all
 records from this table filtered by the company's `CEMP_PK` and stores
 them locally.
+Each user can also reference a vendor contact using the `CCOT_VEND_PK`
+column.
 
 Products now include a `CEMP_PK` foreign key referencing `CADE_EMPRESA`.
 When synchronizing with Supabase the app filters products by the
@@ -70,8 +72,9 @@ Orders are stored in `PEDI_DOCUMENTOS` and each order can now contain
 multiple products through the `PEDI_ITENS` table. The SQL statement used to
 create this table is available at `sql/create_pedi_itens.sql`. When editing an
 order the application calculates `PDOC_VLR_TOTAL` automatically from the sum
-of its items. These order records and their items are also synchronized with
-Supabase when using the sync screen.
+of its items. Each new order automatically stores the vendor contact from the
+logged user in the `CCOT_VEND_PK` column. These order records and their items
+are also synchronized with Supabase when using the sync screen.
 
 The client form displays a map using the `google_maps_flutter` plugin, which
 has been upgraded to version 2.12.3.
