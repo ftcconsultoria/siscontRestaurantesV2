@@ -75,6 +75,16 @@ ORDER BY p.EPRO_DESCRICAO
     );
   }
 
+  /// Updates the stock quantity for a product by the given delta.
+  /// Positive values increase the stock while negative values decrease it.
+  Future<void> updateStock(int productPk, double delta) async {
+    final db = await _db;
+    await db.rawUpdate(
+      'UPDATE ESTQ_PRODUTO SET EPRO_ESTQ_ATUAL = (EPRO_ESTQ_ATUAL + ?) WHERE EPRO_PK = ?',
+      [delta, productPk],
+    );
+  }
+
   /// Deletes a product by its primary key.
   Future<void> delete(int id) async {
     final db = await _db;

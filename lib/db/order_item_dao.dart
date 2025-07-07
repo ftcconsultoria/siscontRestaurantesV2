@@ -19,7 +19,23 @@ WHERE i.PDOC_PK = ?
   Future<void> replaceItems(int orderPk, List<Map<String, dynamic>> items) async {
     final db = await _db;
     final batch = db.batch();
+
+    // restore stock from current items
+    final existing = await db.query('PEDI_ITENS',
+        where: 'PDOC_PK = ?', whereArgs: [orderPk]);
+    for (final item in existing) {
+      final pk = item['EPRO_PK'] as int?;
+      final qty = (item['PITEN_QTD'] as num?)?.toDouble() ?? 0;
+      if (pk != null) {
+        batch.rawUpdate(
+          'UPDATE ESTQ_PRODUTO SET EPRO_ESTQ_ATUAL = (EPRO_ESTQ_ATUAL + ?) WHERE EPRO_PK = ?',
+          [qty, pk],
+        );
+      }
+    }
+
     batch.delete('PEDI_ITENS', where: 'PDOC_PK = ?', whereArgs: [orderPk]);
+
     for (final item in items) {
       final data = <String, dynamic>{
         'EPRO_PK': item['EPRO_PK'],
@@ -29,13 +45,37 @@ WHERE i.PDOC_PK = ?
         'PDOC_PK': orderPk,
       };
       batch.insert('PEDI_ITENS', data);
+
+      final pk = data['EPRO_PK'] as int?;
+      final qty = (data['PITEN_QTD'] as num?)?.toDouble() ?? 0;
+      if (pk != null) {
+        batch.rawUpdate(
+          'UPDATE ESTQ_PRODUTO SET EPRO_ESTQ_ATUAL = (EPRO_ESTQ_ATUAL - ?) WHERE EPRO_PK = ?',
+          [qty, pk],
+        );
+      }
     }
+
     await batch.commit(noResult: true);
   }
 
   Future<void> deleteByOrder(int orderPk) async {
     final db = await _db;
-    await db.delete('PEDI_ITENS', where: 'PDOC_PK = ?', whereArgs: [orderPk]);
+    final items = await db.query('PEDI_ITENS',
+        where: 'PDOC_PK = ?', whereArgs: [orderPk]);
+    final batch = db.batch();
+    for (final item in items) {
+      final pk = item['EPRO_PK'] as int?;
+      final qty = (item['PITEN_QTD'] as num?)?.toDouble() ?? 0;
+      if (pk != null) {
+        batch.rawUpdate(
+          'UPDATE ESTQ_PRODUTO SET EPRO_ESTQ_ATUAL = (EPRO_ESTQ_ATUAL + ?) WHERE EPRO_PK = ?',
+          [qty, pk],
+        );
+      }
+    }
+    batch.delete('PEDI_ITENS', where: 'PDOC_PK = ?', whereArgs: [orderPk]);
+    await batch.commit(noResult: true);
   }
 
   Future<void> replaceAll(List<Map<String, dynamic>> items) async {
