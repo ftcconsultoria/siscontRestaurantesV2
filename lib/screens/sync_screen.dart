@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db/sync_service.dart';
 import '../db/log_event_dao.dart';
+import '../widgets/progress_dialog.dart';
 
 /// Screen that provides buttons to import or export data with Supabase.
 class SyncScreen extends StatelessWidget {
@@ -10,25 +11,17 @@ class SyncScreen extends StatelessWidget {
 
   Future<void> _import(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
+    final progress = ValueNotifier<double>(0);
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: SizedBox(
-          height: 80,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Importando...'),
-            ],
-          ),
-        ),
+      builder: (_) => ProgressDialog(
+        message: 'Importando...',
+        progress: progress,
       ),
     );
     try {
-      await SyncService().pull();
+      await SyncService().pull(onProgress: (v) => progress.value = v);
       messenger.showSnackBar(
         const SnackBar(content: Text('Importação concluída'), backgroundColor: Colors.green),
       );
@@ -53,30 +46,23 @@ class SyncScreen extends StatelessWidget {
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
       }
+      progress.dispose();
     }
   }
 
   Future<void> _export(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
+    final progress = ValueNotifier<double>(0);
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: SizedBox(
-          height: 80,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Enviando...'),
-            ],
-          ),
-        ),
+      builder: (_) => ProgressDialog(
+        message: 'Enviando...',
+        progress: progress,
       ),
     );
     try {
-      await SyncService().push();
+      await SyncService().push(onProgress: (v) => progress.value = v);
       messenger.showSnackBar(
         const SnackBar(content: Text('Envio concluído'), backgroundColor: Colors.green),
       );
@@ -101,6 +87,7 @@ class SyncScreen extends StatelessWidget {
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
       }
+      progress.dispose();
     }
   }
 
