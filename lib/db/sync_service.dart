@@ -29,7 +29,10 @@ class SyncService {
   }
 
   /// Pushes local changes to Supabase.
-  Future<void> push({void Function(double progress)? onProgress}) async {
+  Future<void> push({
+    void Function(double progress)? onProgress,
+    void Function(String status)? onStatus,
+  }) async {
     final supabase = Supabase.instance.client;
     final companyPk = await _companyPk();
     final companyCnpj = await _companyCnpj();
@@ -63,6 +66,7 @@ class SyncService {
     }
 
     // push local products
+    onStatus?.call('Produtos');
     for (final p in localProducts) {
       final data = Map<String, dynamic>.from(p)..remove('ESTQ_PRODUTO_FOTO');
       if (companyPk != null) {
@@ -74,6 +78,7 @@ class SyncService {
     }
 
     // push local clients
+    onStatus?.call('Clientes');
     for (final c in localClients) {
       final data = Map<String, dynamic>.from(c);
       if (companyPk != null) {
@@ -121,6 +126,7 @@ class SyncService {
     }
 
     // push local orders
+    onStatus?.call('Pedidos');
     for (final o in localOrders) {
       final orderPk = o['PDOC_PK'] as int?;
       final orderData = Map<String, dynamic>.from(o);

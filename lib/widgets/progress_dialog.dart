@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
 class ProgressDialog extends StatefulWidget {
-  final String message;
-  final ValueNotifier<double> progress;
-  const ProgressDialog({super.key, required this.message, required this.progress});
+  final ValueListenable<String> message;
+  final ValueListenable<double> progress;
+  const ProgressDialog({
+    super.key,
+    required this.message,
+    required this.progress,
+  });
 
   @override
   State<ProgressDialog> createState() => _ProgressDialogState();
@@ -41,7 +45,10 @@ class _ProgressDialogState extends State<ProgressDialog> {
                 const SizedBox(height: 16),
                 Text('${(value * 100).toStringAsFixed(0)}% - ~${remaining}s restantes'),
                 const SizedBox(height: 8),
-                Text(widget.message),
+                ValueListenableBuilder<String>(
+                  valueListenable: widget.message,
+                  builder: (context, msg, __) => Text(msg),
+                ),
               ],
             );
           },
