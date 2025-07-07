@@ -67,12 +67,8 @@ class SyncService {
 
     // push local products
     onStatus?.call('Produtos');
-    for (final p in localProducts) {
-      final data = Map<String, dynamic>.from(p)..remove('ESTQ_PRODUTO_FOTO');
-      if (companyPk != null) {
-        data['CEMP_PK'] = companyPk;
-      }
-      await supabase.from('ESTQ_PRODUTO').upsert(data);
+    for (final _ in localProducts) {
+      // Product registration is kept local only.
       completed++;
       report();
     }
