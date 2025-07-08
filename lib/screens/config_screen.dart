@@ -167,51 +167,56 @@ class _ConfigScreenState extends State<ConfigScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Configuração')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Text('Configuração da Empresa',
-                style: TextStyle(fontSize: 20)),
-            TextField(
-              controller: _cnpjController,
-              decoration: const InputDecoration(labelText: 'CNPJ'),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            ),
-            if (_companyName != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'Empresa: $_companyName',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.green,
-                    fontSize: 28,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Configuração da Empresa',
+                style: TextStyle(fontSize: 20),
+              ),
+              TextField(
+                controller: _cnpjController,
+                decoration: const InputDecoration(labelText: 'CNPJ'),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+              if (_companyName != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'Empresa: $_companyName',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontSize: 28,
+                    ),
                   ),
                 ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _fetchCompany,
+                child: const Text('Carregar Empresa'),
               ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _fetchCompany,
-              child: const Text('Carregar Empresa'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _exportBackup,
-              child: const Text('Exportar Backup'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _importBackup,
-              child: const Text('Importar Backup'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _openLogs,
-              child: const Text('Ver Logs'),
-            ),
-          ],
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _exportBackup,
+                child: const Text('Exportar Backup'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _importBackup,
+                child: const Text('Importar Backup'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _openLogs,
+                child: const Text('Ver Logs'),
+              ),
+            ],
+          ),
         ),
       ),
     );
