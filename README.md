@@ -85,6 +85,8 @@ available at `sql/create_sis_log_evento.sql` and logs are synchronized with
 Supabase so issues on devices can be reviewed later.
 If any error occurs while syncing with Supabase, the app saves the exception
 details to this table so they can be uploaded on the next successful sync.
+Each error now records the specific table where the failure happened so the log
+shows exactly which step of the synchronization broke.
 
 Device authorizations are stored in the `dispositivos_autorizados` table. The
 SQL definition can be found at `sql/create_dispositivos_autorizados.sql`. When
