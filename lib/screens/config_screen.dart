@@ -10,6 +10,7 @@ import '../db/user_dao.dart';
 import '../db/local_database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../db/log_event_dao.dart';
+import 'log_list_screen.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -140,6 +141,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
     }
   }
 
+  void _openLogs() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LogListScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,6 +190,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
             ElevatedButton(
               onPressed: _importBackup,
               child: const Text('Importar Backup'),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _openLogs,
+              child: const Text('Ver Logs'),
             ),
           ],
         ),
