@@ -577,48 +577,65 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          // The product table should never exceed the screen width so we
+          // constrain its size based on the current layout. Long product
+          // descriptions are truncated to avoid horizontal scrolling.
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                  minWidth: MediaQuery.of(context).size.width - 32),
-              child: DataTable(
-                border: TableBorder.all(color: Colors.grey),
-                columnSpacing: 12,
-                horizontalMargin: 8,
-                columns: const [
-                  DataColumn(label: Text('Nome')),
+            child: Builder(builder: (context) {
+              final tableWidth = MediaQuery.of(context).size.width - 32;
+              final nameWidth = tableWidth * 0.45;
+              return ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: tableWidth,
+                  maxWidth: tableWidth,
+                ),
+                child: DataTable(
+                  border: TableBorder.all(color: Colors.grey),
+                  columnSpacing: 12,
+                  horizontalMargin: 8,
+                  columns: const [
+                    DataColumn(label: Text('Nome')),
                   DataColumn(label: Text('Qtd')),
                   DataColumn(label: Text('Vlr Total')),
                   DataColumn(label: Text('')),
                 ],
                 rows: List.generate(_items.length, (index) {
-  final i = _items[index];
-  final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
-  final rowColor = estq == 0
-      ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
-      : null;
-                return DataRow(
-                  color: rowColor,
-                  cells: [
-                    DataCell(Text(i['EPRO_DESCRICAO'] ?? '')),
-                    DataCell(
-                      InkWell(
-                        onDoubleTap: () => _editItemQuantity(index),
-                        child: Text('${i['PITEN_QTD']}'),
+                  final i = _items[index];
+                  final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
+                  final rowColor = estq == 0
+                      ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
+                      : null;
+                  return DataRow(
+                    color: rowColor,
+                    cells: [
+                      DataCell(
+                        SizedBox(
+                          width: nameWidth,
+                          child: Text(
+                            i['EPRO_DESCRICAO'] ?? '',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
-                    ),
-                    DataCell(Text('${i['PITEN_VLR_TOTAL']}')),
-                    DataCell(
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _removeItem(index),
+                      DataCell(
+                        InkWell(
+                          onDoubleTap: () => _editItemQuantity(index),
+                          child: Text('${i['PITEN_QTD']}'),
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              }),
-            ),
+                      DataCell(Text('${i['PITEN_VLR_TOTAL']}')),
+                      DataCell(
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _removeItem(index),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              );
+            }),
           ),
           ),
           Align(
