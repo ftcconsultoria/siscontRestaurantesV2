@@ -634,10 +634,10 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     ],
                   );
                 }),
+              )
               );
             }),
-          ),
-          ),
+          ),          
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
@@ -648,7 +648,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           ),
         ],
       ),
-      ),
+      ),      
     );
   }
 }
