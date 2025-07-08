@@ -125,7 +125,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
         'aparelho': model,
         'sistema': system,
         'CEMP_PK': companyPk,
-      });
+      }, onConflict: 'uuid');
     } catch (_) {}
   }
 
