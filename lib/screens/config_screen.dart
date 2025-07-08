@@ -72,6 +72,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
         messenger.showSnackBar(const SnackBar(
             content: Text('Empresa configurada corretamente'),
             backgroundColor: Colors.green));
+        await _logDao.insert(
+            entidade: 'CONFIG',
+            tipo: 'CARREGAR_EMPRESA',
+            tela: 'ConfigScreen',
+            mensagem: 'Empresa configurada');
       } else {
         messenger.showSnackBar(const SnackBar(
             content: Text('Empresa não encontrada'),
@@ -101,6 +106,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
           SnackBar(content: Text('Backup exportado em $backupPath')));
       await Share.shareXFiles([XFile(backupPath)],
           text: 'ERP Mobile - backup do banco de dados');
+      await _logDao.insert(
+          entidade: 'CONFIG',
+          tipo: 'EXPORT_BACKUP',
+          tela: 'ConfigScreen',
+          mensagem: 'Backup exportado');
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Erro ao exportar: $e')));
       await _logDao.insert(
@@ -131,6 +141,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
       await _loadLocalCompany();
       messenger.showSnackBar(
           const SnackBar(content: Text('Backup importado com sucesso')));
+      await _logDao.insert(
+          entidade: 'CONFIG',
+          tipo: 'IMPORT_BACKUP',
+          tela: 'ConfigScreen',
+          mensagem: 'Backup importado');
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Erro ao importar: $e')));
       await _logDao.insert(
