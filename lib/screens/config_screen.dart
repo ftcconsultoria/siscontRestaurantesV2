@@ -104,28 +104,37 @@ class _ConfigScreenState extends State<ConfigScreen> {
         uuid = const Uuid().v4();
         await prefs.setString('device_uuid', uuid);
       }
-      final deviceInfo = DeviceInfoPlugin();
-      String model = '';
-      String system = '';
-      if (Platform.isAndroid) {
-        final info = await deviceInfo.androidInfo;
-        model = info.model ?? '';
-        system = 'Android ${info.version.release}';
-      } else if (Platform.isIOS) {
-        final info = await deviceInfo.iosInfo;
-        model = info.utsname.machine ?? '';
-        system = '${info.systemName} ${info.systemVersion}';
-      } else {
-        model = Platform.operatingSystem;
-        system = Platform.operatingSystemVersion;
-      }
       final supabase = Supabase.instance.client;
-      await supabase.from('dispositivos_autorizados').upsert({
-        'uuid': uuid,
-        'aparelho': model,
-        'sistema': system,
-        'CEMP_PK': companyPk,
-      }, onConflict: 'uuid');
+      final existing = await supabase
+          .from('dispositivos_autorizados')
+          .select('id')
+          .eq('uuid', uuid)
+          .maybeSingle();
+
+      if (existing == null) {
+        final deviceInfo = DeviceInfoPlugin();
+        String model = '';
+        String system = '';
+        if (Platform.isAndroid) {
+          final info = await deviceInfo.androidInfo;
+          model = info.model ?? '';
+          system = 'Android ${info.version.release}';
+        } else if (Platform.isIOS) {
+          final info = await deviceInfo.iosInfo;
+          model = info.utsname.machine ?? '';
+          system = '${info.systemName} ${info.systemVersion}';
+        } else {
+          model = Platform.operatingSystem;
+          system = Platform.operatingSystemVersion;
+        }
+
+        await supabase.from('dispositivos_autorizados').insert({
+          'uuid': uuid,
+          'aparelho': model,
+          'sistema': system,
+          'CEMP_PK': companyPk,
+        });
+      }
     } catch (_) {}
   }
 
