@@ -5,6 +5,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:uuid/uuid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../db/company_dao.dart';
 import '../db/user_dao.dart';
 import '../db/local_database.dart';
@@ -69,6 +72,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             _companyName = result['CEMP_NOME_FANTASIA'] as String?;
           });
         }
+        await _registerDevice(result['CEMP_PK'] as int);
         messenger.showSnackBar(const SnackBar(
             content: Text('Empresa configurada corretamente'),
             backgroundColor: Colors.green));
@@ -90,6 +94,39 @@ class _ConfigScreenState extends State<ConfigScreen> {
           tela: 'ConfigScreen',
           mensagem: e.toString());
     }
+  }
+
+  Future<void> _registerDevice(int companyPk) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      var uuid = prefs.getString('device_uuid');
+      if (uuid == null) {
+        uuid = const Uuid().v4();
+        await prefs.setString('device_uuid', uuid);
+      }
+      final deviceInfo = DeviceInfoPlugin();
+      String model = '';
+      String system = '';
+      if (Platform.isAndroid) {
+        final info = await deviceInfo.androidInfo;
+        model = info.model ?? '';
+        system = 'Android ${info.version.release}';
+      } else if (Platform.isIOS) {
+        final info = await deviceInfo.iosInfo;
+        model = info.utsname.machine ?? '';
+        system = '${info.systemName} ${info.systemVersion}';
+      } else {
+        model = Platform.operatingSystem;
+        system = Platform.operatingSystemVersion;
+      }
+      final supabase = Supabase.instance.client;
+      await supabase.from('dispositivos_autorizados').upsert({
+        'uuid': uuid,
+        'aparelho': model,
+        'sistema': system,
+        'CEMP_PK': companyPk,
+      });
+    } catch (_) {}
   }
 
   /// Exports the SQLite database to a file named `erp_mobile_backup.db` in the
