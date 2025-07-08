@@ -7,22 +7,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'db/log_event_dao.dart';
 
 /// Initializes Supabase and starts the application.
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+Future<void> main() async {  
   final logDao = LogEventDao();
 
-  FlutterError.onError = (details) async {
-    FlutterError.presentError(details);
-    await logDao.insert(
-      entidade: 'EXCEPTION',
-      tipo: 'FLUTTER_ERROR',
-      tela: details.library,
-      mensagem: details.exceptionAsString(),
-      dados: {'stack': details.stack?.toString()},
-    );
-  };
-
   await runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    FlutterError.onError = (details) async {
+      FlutterError.presentError(details);
+      await logDao.insert(
+        entidade: 'EXCEPTION',
+        tipo: 'FLUTTER_ERROR',
+        tela: details.library,
+        mensagem: details.exceptionAsString(),
+        dados: {'stack': details.stack?.toString()},
+      );
+    };
     await Supabase.initialize(
       url: 'https://retuujyjqylsyioargmh.supabase.co',
       anonKey:
