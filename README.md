@@ -91,6 +91,7 @@ SQL definition can be found at `sql/create_dispositivos_autorizados.sql`. When
 the configuration screen loads a company, the app records the device UUID,
 model and OS version in this table and sends the data directly to Supabase so
 administrators can approve access.
+The `uuid` column is unique, preventing the same device from being inserted multiple times.
 
 The client form displays a map using the `google_maps_flutter` plugin, which
 has been upgraded to version 2.12.3.
