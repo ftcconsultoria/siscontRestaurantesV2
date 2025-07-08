@@ -113,9 +113,10 @@ class _OrderListScreenState extends State<OrderListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pedidos')),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _ordersFuture,
-        builder: (context, snapshot) {
+      body: SafeArea(
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _ordersFuture,
+          builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -176,6 +177,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
             ),
           );
         },
+      ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showForm(),

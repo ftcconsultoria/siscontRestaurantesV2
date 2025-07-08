@@ -529,12 +529,13 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           IconButton(onPressed: _submit, icon: const Icon(Icons.save)),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _clientController,
-            readOnly: true,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            TextField(
+              controller: _clientController,
+              readOnly: true,
             decoration: InputDecoration(
               labelText: 'Cliente',
               suffixIcon: IconButton(
@@ -627,8 +628,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Adicionar Produto'),
             ),
-          ),          
+          ),
         ],
+      ),
       ),
     );
   }
