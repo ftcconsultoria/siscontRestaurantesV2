@@ -98,16 +98,17 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF283593), Color(0xFF0D47A1)],
+      body: SafeArea(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF283593), Color(0xFF0D47A1)],
+            ),
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
+          child: Center(
+            child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

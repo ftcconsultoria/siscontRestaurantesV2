@@ -65,12 +65,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(widget.product == null ? 'Novo Produto' : 'Editar Produto'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _eanController,
-            decoration: InputDecoration(
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _eanController,
+              decoration: InputDecoration(
               labelText: 'EAN',
               suffixIcon: IconButton(
                 icon: const Icon(Icons.camera_alt),
@@ -97,12 +98,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             decoration: const InputDecoration(labelText: 'Preço'),
             keyboardType: TextInputType.number,
           ),
-          TextField(
-            controller: _stockController,
-            decoration: const InputDecoration(labelText: 'Estoque'),
-            keyboardType: TextInputType.number,
-          ),
-        ],
+            TextField(
+              controller: _stockController,
+              decoration: const InputDecoration(labelText: 'Estoque'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
