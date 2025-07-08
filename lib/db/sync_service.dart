@@ -33,6 +33,7 @@ class SyncService {
     void Function(double progress)? onProgress,
     void Function(String status)? onStatus,
   }) async {
+    String currentTable = 'SYNC';
     try {
     final supabase = Supabase.instance.client;
     final companyPk = await _companyPk();
@@ -68,6 +69,7 @@ class SyncService {
 
     // push local products
     onStatus?.call('Produtos');
+    currentTable = 'ESTQ_PRODUTO';
     for (final _ in localProducts) {
       // Product registration is kept local only.
       completed++;
@@ -76,6 +78,7 @@ class SyncService {
 
     // push local clients
     onStatus?.call('Clientes');
+    currentTable = 'CADE_CONTATO';
     for (final c in localClients) {
       final data = Map<String, dynamic>.from(c);
       if (companyPk != null) {
@@ -87,6 +90,7 @@ class SyncService {
     }
 
     // push local photos
+    currentTable = 'ESTQ_PRODUTO_FOTO';
     for (final photo in localPhotos) {
       final url = photo['EPRO_FOTO_URL'] as String?;
       final path = photo['EPRO_FOTO_PATH'] as String?;
@@ -132,6 +136,7 @@ class SyncService {
         orderData['CEMP_PK'] = companyPk;
       }
       orderData['PDOC_ESTADO_PEDIDO'] = 'ENVIADO_CLOUD';
+      currentTable = 'PEDI_DOCUMENTOS';
       await supabase.from('PEDI_DOCUMENTOS').upsert(orderData);
 
       if (orderPk != null) {
@@ -141,6 +146,7 @@ class SyncService {
             ..remove('EPRO_DESCRICAO')
             ..remove('EPRO_COD_EAN')
             ..remove('EPRO_ESTQ_ATUAL');
+          currentTable = 'PEDI_ITENS';
           await supabase.from('PEDI_ITENS').upsert(itemData);
           completed++;
           report();
@@ -152,6 +158,7 @@ class SyncService {
     }
 
     // push local logs
+    currentTable = 'SIS_LOG_EVENTO';
     for (final log in localLogs) {
       await supabase.from('SIS_LOG_EVENTO').insert(log);
       completed++;
@@ -163,7 +170,7 @@ class SyncService {
     report();
     } catch (e, s) {
       await _logDao.insert(
-        entidade: 'SYNC',
+        entidade: currentTable,
         tipo: 'ERRO_EXPORT',
         tela: 'SyncService',
         mensagem: e.toString(),
@@ -175,6 +182,7 @@ class SyncService {
 
   /// Pulls remote data from Supabase and updates local tables.
   Future<void> pull({void Function(double progress)? onProgress}) async {
+    String currentTable = 'SYNC';
     try {
     final supabase = Supabase.instance.client;
     final companyPk = await _companyPk();
@@ -185,6 +193,7 @@ class SyncService {
     report();
 
     // pull remote products
+    currentTable = 'ESTQ_PRODUTO';
     final remoteQuery = supabase
         .from('ESTQ_PRODUTO')
         .select(
@@ -204,6 +213,7 @@ class SyncService {
     report();
 
     // pull remote photos only for retrieved products
+    currentTable = 'ESTQ_PRODUTO_FOTO';
     final productPks = list.map((e) => e['EPRO_PK'] as int).toList();
     if (productPks.isNotEmpty) {
       final pkList = productPks.join(',');
@@ -241,6 +251,7 @@ class SyncService {
     report();
 
     // pull remote orders
+    currentTable = 'PEDI_DOCUMENTOS';
     final baseQuery = supabase.from('PEDI_DOCUMENTOS');
 
     final remoteOrders = await (companyPk != null
@@ -260,6 +271,7 @@ class SyncService {
     report();
 
     // pull remote items only for retrieved orders
+    currentTable = 'PEDI_ITENS';
     final orderPks = orders.map((e) => e['PDOC_PK'] as int).toList();
     if (orderPks.isNotEmpty) {
       final pkList = orderPks.join(',');
@@ -277,7 +289,7 @@ class SyncService {
     report();
     } catch (e, s) {
       await _logDao.insert(
-        entidade: 'SYNC',
+        entidade: currentTable,
         tipo: 'ERRO_IMPORT',
         tela: 'SyncService',
         mensagem: e.toString(),
