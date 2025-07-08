@@ -31,3 +31,5 @@ dependencies:
 
 flutter:
     uses-material-design: true
+    assets:
+      - imagens/SISCONT_LOGO.png    

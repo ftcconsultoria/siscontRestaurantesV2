@@ -97,8 +97,36 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: const Center(
-        child: Text('SISCONT Mobile'),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'imagens/SISCONT_LOGO.png',
+              width: 180,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 20), // Espaço entre logo e texto
+            const Text(
+              'SISCONT Sistemas de Automação Comercial',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(206, 2, 132, 255),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '(62) 3277-1090',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Color.fromARGB(206, 2, 132, 255),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
