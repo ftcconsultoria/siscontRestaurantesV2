@@ -1,4 +1,4 @@
-package com.example.erp_mobile
+package br.com.siscont.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
