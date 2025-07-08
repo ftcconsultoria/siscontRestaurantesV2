@@ -5,6 +5,7 @@ import '../db/user_dao.dart';
 import '../db/log_event_dao.dart';
 import 'config_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/uppercase_input_formatter.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -48,6 +49,30 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Checks if this device has been authorized on Supabase.
+  Future<bool> _isDeviceAuthorized() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final uuid = prefs.getString('device_uuid');
+      if (uuid == null) return false;
+      final supabase = Supabase.instance.client;
+      final result = await supabase
+          .from('dispositivos_autorizados')
+          .select('autorizado')
+          .eq('uuid', uuid)
+          .maybeSingle();
+      if (result == null) return false;
+      return result['autorizado'] == true;
+    } catch (e) {
+      await _logDao.insert(
+          entidade: 'LOGIN',
+          tipo: 'ERRO_AUTORIZACAO',
+          tela: 'LoginScreen',
+          mensagem: e.toString());
+      return false;
+    }
+  }
+
   /// Validates credentials against the local database and logs in the user.
   Future<void> _login() async {
     final username = _userController.text.trim();
@@ -64,6 +89,18 @@ class _LoginScreenState extends State<LoginScreen> {
           tipo: 'ERRO',
           tela: 'LoginScreen',
           mensagem: 'Usuário ou senha inválidos');
+      return;
+    }
+    if (!await _isDeviceAuthorized()) {
+      messenger.showSnackBar(const SnackBar(
+          content:
+              Text('Dispositivo não autorizado. Solicite autorização à empresa'),
+          backgroundColor: Colors.red));
+      await _logDao.insert(
+          entidade: 'LOGIN',
+          tipo: 'NAO_AUTORIZADO',
+          tela: 'LoginScreen',
+          mensagem: 'Dispositivo não autorizado');
       return;
     }
     final prefs = await SharedPreferences.getInstance();
