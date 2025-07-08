@@ -604,7 +604,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                   final i = _items[index];
                   final estq = (i['EPRO_ESTQ_ATUAL'] as num?)?.toDouble() ?? 0;
                   final rowColor = estq == 0
-                      ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
+                      ? WidgetStateProperty.all(Colors.red.withOpacity(0.2))
                       : null;
                   return DataRow(
                     color: rowColor,

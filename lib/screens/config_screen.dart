@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -104,37 +103,28 @@ class _ConfigScreenState extends State<ConfigScreen> {
         uuid = const Uuid().v4();
         await prefs.setString('device_uuid', uuid);
       }
-      final supabase = Supabase.instance.client;
-      final existing = await supabase
-          .from('dispositivos_autorizados')
-          .select('id')
-          .eq('uuid', uuid)
-          .maybeSingle();
-
-      if (existing == null) {
-        final deviceInfo = DeviceInfoPlugin();
-        String model = '';
-        String system = '';
-        if (Platform.isAndroid) {
-          final info = await deviceInfo.androidInfo;
-          model = info.model ?? '';
-          system = 'Android ${info.version.release}';
-        } else if (Platform.isIOS) {
-          final info = await deviceInfo.iosInfo;
-          model = info.utsname.machine ?? '';
-          system = '${info.systemName} ${info.systemVersion}';
-        } else {
-          model = Platform.operatingSystem;
-          system = Platform.operatingSystemVersion;
-        }
-
-        await supabase.from('dispositivos_autorizados').insert({
-          'uuid': uuid,
-          'aparelho': model,
-          'sistema': system,
-          'CEMP_PK': companyPk,
-        });
+      final deviceInfo = DeviceInfoPlugin();
+      String model = '';
+      String system = '';
+      if (Platform.isAndroid) {
+        final info = await deviceInfo.androidInfo;
+        model = info.model;
+        system = 'Android ${info.version.release}';
+      } else if (Platform.isIOS) {
+        final info = await deviceInfo.iosInfo;
+        model = info.utsname.machine;
+        system = '${info.systemName} ${info.systemVersion}';
+      } else {
+        model = Platform.operatingSystem;
+        system = Platform.operatingSystemVersion;
       }
+      final supabase = Supabase.instance.client;
+      await supabase.from('dispositivos_autorizados').upsert({
+        'uuid': uuid,
+        'aparelho': model,
+        'sistema': system,
+        'CEMP_PK': companyPk,
+      });
     } catch (_) {}
   }
 
