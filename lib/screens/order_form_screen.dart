@@ -581,7 +581,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width - 32),
+                  minWidth: MediaQuery.of(context).size.width - 32),
               child: DataTable(
                 border: TableBorder.all(color: Colors.grey),
                 columnSpacing: 12,
