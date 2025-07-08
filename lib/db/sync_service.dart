@@ -139,7 +139,8 @@ class SyncService {
         for (final item in items) {
           final itemData = Map<String, dynamic>.from(item)
             ..remove('EPRO_DESCRICAO')
-            ..remove('EPRO_COD_EAN');
+            ..remove('EPRO_COD_EAN')
+            ..remove('EPRO_ESTQ_ATUAL');
           await supabase.from('PEDI_ITENS').upsert(itemData);
           completed++;
           report();
