@@ -164,7 +164,9 @@ class SyncService {
 
     // push local logs
     for (final log in localLogs) {
-      await supabase.from('SIS_LOG_EVENTO').insert(log);
+      final logData = Map<String, dynamic>.from(log)
+        ..remove('LOG_PK');
+      await supabase.from('SIS_LOG_EVENTO').insert(logData);
       completed++;
       report();
     }
