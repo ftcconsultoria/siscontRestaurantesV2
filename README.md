@@ -75,7 +75,7 @@ multiple products through the `PEDI_ITENS` table. The SQL statement used to
 create this table is available at `sql/create_pedi_itens.sql`. When editing an
 order the application calculates `PDOC_VLR_TOTAL` automatically from the sum
 of its items. Each new order automatically stores the vendor contact from the
-logged user in the `CCOT_VEND_PK` column. These order records and their items
+logged user in the `CCOT_VEND_PK` column. When an order PDF is generated the vendor name shown now corresponds to the logged in user. These order records and their items
 are also synchronized with Supabase when using the sync screen. Each order
 includes a `PDOC_ESTADO_PEDIDO` column to track its status. New orders are
 saved with the value `CRIADO_MOBILE` and upon synchronization the status is

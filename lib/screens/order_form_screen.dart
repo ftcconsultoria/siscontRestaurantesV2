@@ -91,10 +91,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     final userPk = prefs.getInt('logged_user_pk');
     if (userPk == null) return '';
     final user = await _userDao.getByPk(userPk);
-    final vendPk = user?['CCOT_VEND_PK'] as int?;
-    if (vendPk == null) return '';
-    final vend = await _contactDao.getByPk(vendPk);
-    return vend?['CCOT_NOME'] ?? '';
+    return user?['CUSU_USUARIO'] ?? '';
   }
 
   @override
