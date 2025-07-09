@@ -20,7 +20,7 @@ class ProductDao {
     final rows = await db.rawQuery('''
 SELECT p.EPRO_PK, p.EPRO_DESCRICAO, p.EPRO_VLR_VAREJO,
        p.EPRO_ESTQ_ATUAL, p.EPRO_COD_EAN, p.CEMP_PK,
-       f.EPRO_FOTO_PK AS FOTO_PK, f.EPRO_FOTO_URL, f.EPRO_FOTO_PATH
+       f.EPRO_FOTO_PK AS FOTO_PK, f.EPRO_FOTO_URL, f.EPRO_FOTO_PATH, f.EPRO_FOTO_ENVIADA
 FROM ESTQ_PRODUTO p
 LEFT JOIN ESTQ_PRODUTO_FOTO f ON p.EPRO_PK = f.EPRO_PK
 ${companyPk != null ? 'WHERE p.CEMP_PK = ?' : ''}
@@ -34,6 +34,7 @@ ORDER BY p.EPRO_DESCRICAO
       final fotoPk = r['FOTO_PK'];
       final fotoUrl = r['EPRO_FOTO_URL'];
       final fotoPath = r['EPRO_FOTO_PATH'];
+      final fotoEnviada = r['EPRO_FOTO_ENVIADA'];
 
       products.putIfAbsent(productPk, () {
         return {
@@ -54,6 +55,7 @@ ORDER BY p.EPRO_DESCRICAO
           'EPRO_PK': productPk,
           'EPRO_FOTO_URL': fotoUrl,
           'EPRO_FOTO_PATH': fotoPath,
+          'EPRO_FOTO_ENVIADA': fotoEnviada,
         });
       }
     }
@@ -114,7 +116,7 @@ ORDER BY p.EPRO_DESCRICAO
 
   /// Inserts or updates the photo record for a product.
   Future<void> upsertPhoto(int productPk,
-      {String? url, String? path}) async {
+      {String? url, String? path, bool sent = false}) async {
     final db = await _db;
     await db.delete('ESTQ_PRODUTO_FOTO',
         where: 'EPRO_PK = ?', whereArgs: [productPk]);
@@ -122,6 +124,7 @@ ORDER BY p.EPRO_DESCRICAO
       'EPRO_PK': productPk,
       'EPRO_FOTO_URL': url,
       'EPRO_FOTO_PATH': path,
+      'EPRO_FOTO_ENVIADA': sent ? 1 : 0,
     });
   }
 
@@ -148,8 +151,10 @@ JOIN ESTQ_PRODUTO p ON f.EPRO_PK = p.EPRO_PK
     final batch = db.batch();
     batch.delete('ESTQ_PRODUTO_FOTO');
     for (final p in photos) {
-      batch.insert('ESTQ_PRODUTO_FOTO', p,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      batch.insert('ESTQ_PRODUTO_FOTO', {
+        ...p,
+        'EPRO_FOTO_ENVIADA': p['EPRO_FOTO_ENVIADA'] ?? 1,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
   }

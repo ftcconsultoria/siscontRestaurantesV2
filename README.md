@@ -22,6 +22,9 @@ at `sql/create_estq_produto_foto.sql` contains the statement used to create the
 `ESTQ_PRODUTO_FOTO` table which stores product photo URLs. This table
 references the existing `ESTQ_PRODUTO` table and generates `EPRO_FOTO_PK`
 automatically.
+An additional script `sql/alter_estq_produto_foto_add_enviada.sql` adds the
+`EPRO_FOTO_ENVIADA` flag used by the app to track which photos were already
+uploaded to Supabase.
 
 The script `sql/alter_estq_produto_add_cemp_pk.sql` adds the `CEMP_PK`
 foreign key to `ESTQ_PRODUTO`, linking each product to a company in
@@ -50,7 +53,9 @@ camera icon for a product, the app uses the device camera to take a picture and
 uploads the file to the Supabase Storage bucket `fotos-produtos`.
 Files are stored under `<CNPJ>/<COD_PRODUTO>` so each company has its own
 subfolder. The resulting public URL is saved in the `EPRO_FOTO_URL` column of
-`ESTQ_PRODUTO_FOTO` together with the corresponding product key.
+`ESTQ_PRODUTO_FOTO` together with the corresponding product key. The table also
+contains `EPRO_FOTO_ENVIADA` to indicate if a photo was already sent so each
+image is uploaded only once.
 
 When a product is deleted, the application also removes any associated files
 from the `fotos-produtos` bucket to avoid leaving orphan images in storage.

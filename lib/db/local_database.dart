@@ -31,7 +31,7 @@ class LocalDatabase {
     final dbPath = await path;
     return openDatabase(
       dbPath,
-      version: 13,
+      version: 14,
       onCreate: (db, version) async {
         await db.execute('''
 CREATE TABLE ESTQ_PRODUTO (
@@ -48,7 +48,8 @@ CREATE TABLE ESTQ_PRODUTO_FOTO (
   EPRO_FOTO_PK INTEGER PRIMARY KEY AUTOINCREMENT,
   EPRO_PK INTEGER,
   EPRO_FOTO_URL TEXT,
-  EPRO_FOTO_PATH TEXT
+  EPRO_FOTO_PATH TEXT,
+  EPRO_FOTO_ENVIADA INTEGER DEFAULT 0
 )
 ''');
         await db.execute('''
@@ -250,6 +251,9 @@ CREATE TABLE SIS_LOG_EVENTO (
         if (oldVersion < 13) {
           await db.execute('ALTER TABLE PEDI_DOCUMENTOS ADD COLUMN PDOC_UUID TEXT');
           await db.execute('ALTER TABLE PEDI_ITENS ADD COLUMN PDOC_UUID TEXT');
+        }
+        if (oldVersion < 14) {
+          await db.execute('ALTER TABLE ESTQ_PRODUTO_FOTO ADD COLUMN EPRO_FOTO_ENVIADA INTEGER DEFAULT 0');
         }
       },
     );

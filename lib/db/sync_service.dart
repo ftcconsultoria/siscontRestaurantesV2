@@ -108,7 +108,13 @@ class SyncService {
       final url = photo['EPRO_FOTO_URL'] as String?;
       final path = photo['EPRO_FOTO_PATH'] as String?;
       final productPk = photo['EPRO_PK'] as int?;
-      if (productPk == null) continue;
+      final sent = (photo['EPRO_FOTO_ENVIADA'] as int? ?? 0) == 1;
+      if (productPk == null || sent) {
+        completed++;
+        report();
+        updateStatus('Fotos');
+        continue;
+      }
       if (path != null && (url == null || !url.startsWith('http'))) {
         final file = File(path);
         if (await file.exists()) {
@@ -126,7 +132,7 @@ class SyncService {
             'EPRO_PK': productPk,
             'EPRO_FOTO_URL': publicUrl,
           });
-          await _dao.upsertPhoto(productPk, url: publicUrl);
+          await _dao.upsertPhoto(productPk, url: publicUrl, sent: true);
           await file.delete();
         }
       } else if (url != null) {
@@ -134,6 +140,7 @@ class SyncService {
           'EPRO_PK': productPk,
           'EPRO_FOTO_URL': url,
         });
+        await _dao.upsertPhoto(productPk, url: url, sent: true);
       }
       completed++;
       report();
@@ -255,6 +262,7 @@ class SyncService {
           } catch (_) {}
         }
         p['EPRO_FOTO_PATH'] = filePath;
+        p['EPRO_FOTO_ENVIADA'] = 1;
       }
 
       await _dao.replaceAllPhotos(photos);
