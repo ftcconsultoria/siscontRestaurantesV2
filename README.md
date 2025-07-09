@@ -82,6 +82,10 @@ saved with the value `CRIADO_MOBILE` and upon synchronization the status is
 changed to `ENVIADO_CLOUD`. Only orders in the `CRIADO_MOBILE` state (or with
 no status) are uploaded.
 
+Both `PEDI_DOCUMENTOS` and `PEDI_ITENS` now contain a `UUID` column. This value
+is generated for every new record and synchronized with Supabase so the
+combination of primary key and UUID stays unique across devices.
+
 Application events are tracked in the `SIS_LOG_EVENTO` table. The definition is
 available at `sql/create_sis_log_evento.sql` and logs are synchronized with
 Supabase so issues on devices can be reviewed later.

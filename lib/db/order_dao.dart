@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 import 'local_database.dart';
 import 'company_dao.dart';
 import 'user_dao.dart';
@@ -51,6 +52,9 @@ ORDER BY d.PDOC_PK DESC
     if (!data.containsKey('PDOC_PK')) {
       data['CCOT_VEND_PK'] = data['CCOT_VEND_PK'] ?? await _getVendorPk();
       data['PDOC_ESTADO_PEDIDO'] = 'CRIADO_MOBILE';
+      data['PDOC_UUID'] = const Uuid().v4();
+    } else if (!data.containsKey('PDOC_UUID')) {
+      data['PDOC_UUID'] = const Uuid().v4();
     }
 
     if (data.containsKey('PDOC_PK')) {

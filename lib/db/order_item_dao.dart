@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'local_database.dart';
+import 'package:uuid/uuid.dart';
 
 class OrderItemDao {
   Future<Database> get _db async => await LocalDatabase.instance;
@@ -7,7 +8,7 @@ class OrderItemDao {
   Future<List<Map<String, dynamic>>> getByOrder(int orderPk) async {
     final db = await _db;
     return await db.rawQuery('''
-SELECT i.PITEN_PK, i.PDOC_PK, i.EPRO_PK, i.PITEN_QTD,
+SELECT i.PITEN_PK, i.PITEN_UUID, i.PDOC_PK, i.EPRO_PK, i.PITEN_QTD,
        i.PITEN_VLR_UNITARIO, i.PITEN_VLR_TOTAL,
        p.EPRO_DESCRICAO, p.EPRO_COD_EAN, p.EPRO_ESTQ_ATUAL
 FROM PEDI_ITENS i
@@ -43,6 +44,7 @@ WHERE i.PDOC_PK = ?
         'PITEN_VLR_UNITARIO': item['PITEN_VLR_UNITARIO'],
         'PITEN_VLR_TOTAL': item['PITEN_VLR_TOTAL'],
         'PDOC_PK': orderPk,
+        'PITEN_UUID': item['PITEN_UUID'] ?? const Uuid().v4(),
       };
       batch.insert('PEDI_ITENS', data);
 

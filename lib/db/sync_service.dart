@@ -276,7 +276,7 @@ class SyncService {
     final vendorPk = await _vendorPk();
     var query = supabase
         .from('PEDI_DOCUMENTOS')
-        .select('PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO');
+        .select('PDOC_PK, PDOC_UUID, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO');
 
     if (companyPk != null) {
       query = query.eq('CEMP_PK', companyPk);
@@ -300,7 +300,7 @@ class SyncService {
       final remoteItems = await supabase
           .from('PEDI_ITENS')
           .select(
-              'PITEN_PK, PDOC_PK, EPRO_PK, PITEN_QTD, PITEN_VLR_UNITARIO, PITEN_VLR_TOTAL')
+              'PITEN_PK, PITEN_UUID, PDOC_PK, EPRO_PK, PITEN_QTD, PITEN_VLR_UNITARIO, PITEN_VLR_TOTAL')
           .filter('PDOC_PK', 'in', '($pkList)');
       final items = List<Map<String, dynamic>>.from(remoteItems);
       await _itemDao.replaceAll(items);
