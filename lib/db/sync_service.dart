@@ -3,12 +3,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path_lib;
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'product_dao.dart';
 import 'company_dao.dart';
 import 'contact_dao.dart';
 import 'order_dao.dart';
 import 'order_item_dao.dart';
 import 'log_event_dao.dart';
+import 'user_dao.dart';
 
 class SyncService {
   final _dao = ProductDao();
@@ -17,6 +19,7 @@ class SyncService {
   final _orderDao = OrderDao();
   final _itemDao = OrderItemDao();
   final _logDao = LogEventDao();
+  final _userDao = UserDao();
 
   Future<int?> _companyPk() async {
     final company = await _companyDao.getFirst();
@@ -26,6 +29,14 @@ class SyncService {
   Future<String?> _companyCnpj() async {
     final company = await _companyDao.getFirst();
     return company?['CEMP_CNPJ'] as String?;
+  }
+
+  Future<int?> _vendorPk() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userPk = prefs.getInt('logged_user_pk');
+    if (userPk == null) return null;
+    final user = await _userDao.getByPk(userPk);
+    return user?['CCOT_VEND_PK'] as int?;
   }
 
   /// Pushes local changes to Supabase.
@@ -241,18 +252,19 @@ class SyncService {
     report();
 
     // pull remote orders
-    final baseQuery = supabase.from('PEDI_DOCUMENTOS');
-
-    final remoteOrders = await (companyPk != null
-        ? baseQuery
-            .select(
-                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO')
-            .eq('CEMP_PK', companyPk)
-            .order('PDOC_PK', ascending: false)
-        : baseQuery
-            .select(
-                'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO')
-            .order('PDOC_PK', ascending: false));
+    final vendorPk = await _vendorPk();
+    var orderQuery = supabase
+        .from('PEDI_DOCUMENTOS')
+        .select(
+            'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO')
+        .order('PDOC_PK', ascending: false);
+    if (companyPk != null) {
+      orderQuery = orderQuery.eq('CEMP_PK', companyPk);
+    }
+    if (vendorPk != null) {
+      orderQuery = orderQuery.eq('CCOT_VEND_PK', vendorPk);
+    }
+    final remoteOrders = await orderQuery;
 
     final orders = List<Map<String, dynamic>>.from(remoteOrders);
     await _orderDao.replaceAll(orders);
