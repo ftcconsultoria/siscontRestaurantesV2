@@ -26,8 +26,33 @@ class OrderPdf {
     final total = items.fold<double>(
         0, (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
 
-    doc.addPage(
-      pw.Page(
+    final addressParts = [
+      client['CCOT_END_NOME_LOGRADOURO'],
+      client['CCOT_END_NUMERO'],
+      client['CCOT_END_COMPLEMENTO']
+    ].whereType<String>().where((e) => e.isNotEmpty).toList();
+    final address = addressParts.join(', ');
+
+    final cityState = [
+      client['CCOT_END_MUNICIPIO'],
+      client['CCOT_END_UF']
+    ].whereType<String>().where((e) => e.isNotEmpty).join(' - ');        
+
+    pw.Widget cell(String text, {bool header = false, bool alignRight = false}) {
+      return pw.Container(
+        alignment:
+            alignRight ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
+        padding: const pw.EdgeInsets.all(4),
+        child: pw.Text(
+          text,
+          style: header
+              ? pw.TextStyle(fontWeight: pw.FontWeight.bold)
+              : const pw.TextStyle(),
+        ),
+      );
+    }
+    doc.addPage(           
+      pw.MultiPage(
         margin: const pw.EdgeInsets.all(1 * PdfPageFormat.cm),
         footer: (context) => pw.Align(
           alignment: pw.Alignment.center,
@@ -36,35 +61,8 @@ class OrderPdf {
             style: pw.TextStyle(color: PdfColors.lightBlue, fontSize: 10),
           ),
         ),
-        build: (context) {
-          pw.Widget cell(String text,
-              {bool header = false, bool alignRight = false}) {
-            return pw.Container(
-              alignment: alignRight
-                  ? pw.Alignment.centerRight
-                  : pw.Alignment.centerLeft,
-              padding: const pw.EdgeInsets.all(4),
-              child: pw.Text(
-                text,
-                style: header
-                    ? pw.TextStyle(fontWeight: pw.FontWeight.bold)
-                    : const pw.TextStyle(),
-              ),
-            );
-          }
-
-          final addressParts = [
-            client['CCOT_END_NOME_LOGRADOURO'],
-            client['CCOT_END_NUMERO'],
-            client['CCOT_END_COMPLEMENTO']
-          ].whereType<String>().where((e) => e.isNotEmpty).toList();
-          final address = addressParts.join(', ');
-          final cityState = [
-            client['CCOT_END_MUNICIPIO'],
-            client['CCOT_END_UF']
-          ].whereType<String>().where((e) => e.isNotEmpty).join(' - ');
-
-          return pw.Column(
+        build: (context) => [
+          pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
@@ -77,6 +75,8 @@ class OrderPdf {
               pw.SizedBox(height: 4),
               pw.Text('Vendedor: $vendorName'),
               pw.SizedBox(height: 8),
+
+              /// Tabela de informações do cliente
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Table(
@@ -119,7 +119,10 @@ class OrderPdf {
                   ],
                 ),
               ),
+
               pw.SizedBox(height: 12),
+
+              /// Tabela de produtos
               pw.Table(
                 border: pw.TableBorder.all(),
                 children: [
@@ -157,7 +160,10 @@ class OrderPdf {
                   }),
                 ],
               ),
+
               pw.SizedBox(height: 10),
+
+              /// Total
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text(
@@ -169,9 +175,9 @@ class OrderPdf {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        ],
+      ),    
     );
     return doc.save();
   }
