@@ -76,17 +76,21 @@ class SyncService {
         onProgress(completed / total);
       }
     }
+    void updateStatus(String table) {
+      onStatus?.call('$completed/$total $table');
+    }
 
     // push local products
-    onStatus?.call('Produtos');
+    updateStatus('Produtos');
     for (final _ in localProducts) {
       // Product registration is kept local only.
       completed++;
       report();
+      updateStatus('Produtos');
     }
 
     // push local clients
-    onStatus?.call('Clientes');
+    updateStatus('Clientes');
     for (final c in localClients) {
       final data = Map<String, dynamic>.from(c);
       if (companyPk != null) {
@@ -95,9 +99,11 @@ class SyncService {
       await supabase.from('CADE_CONTATO').upsert(data);
       completed++;
       report();
+      updateStatus('Clientes');
     }
 
     // push local photos
+    updateStatus('Fotos');
     for (final photo in localPhotos) {
       final url = photo['EPRO_FOTO_URL'] as String?;
       final path = photo['EPRO_FOTO_PATH'] as String?;
@@ -131,10 +137,11 @@ class SyncService {
       }
       completed++;
       report();
+      updateStatus('Fotos');
     }
 
     // push local orders
-    onStatus?.call('Pedidos');
+    updateStatus('Pedidos');
     for (final o in localOrders) {
       final orderPk = o['PDOC_PK'] as int?;
       final orderData = Map<String, dynamic>.from(o);
@@ -155,20 +162,24 @@ class SyncService {
           await supabase.from('PEDI_ITENS').upsert(itemData);
           completed++;
           report();
+          updateStatus('PEDI_ITENS');
         }
         await _orderDao.updateStatus(orderPk, 'ENVIADO_CLOUD');
       }
       completed++;
       report();
+      updateStatus('PEDI_DOCUMENTOS');
     }
 
     // push local logs
+    updateStatus('SIS_LOG_EVENTO');
     for (final log in localLogs) {
       final logData = Map<String, dynamic>.from(log)
         ..remove('LOG_PK');
       await supabase.from('SIS_LOG_EVENTO').insert(logData);
       completed++;
       report();
+      updateStatus('SIS_LOG_EVENTO');
     }
     if (localLogs.isNotEmpty) {
       await _logDao.deleteAll();
