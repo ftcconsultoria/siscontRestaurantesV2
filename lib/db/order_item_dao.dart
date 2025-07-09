@@ -19,6 +19,18 @@ WHERE i.PDOC_PK = ?
 
   Future<void> replaceItems(int orderPk, List<Map<String, dynamic>> items) async {
     final db = await _db;
+
+    // Retrieve the order UUID so all items share the same value
+    final orderRows = await db.query('PEDI_DOCUMENTOS',
+        columns: ['PDOC_UUID'], where: 'PDOC_PK = ?', whereArgs: [orderPk]);
+    String? orderUuid =
+        orderRows.isNotEmpty ? orderRows.first['PDOC_UUID'] as String? : null;
+    if (orderUuid == null) {
+      orderUuid = const Uuid().v4();
+      await db.update('PEDI_DOCUMENTOS', {'PDOC_UUID': orderUuid},
+          where: 'PDOC_PK = ?', whereArgs: [orderPk]);
+    }
+
     final batch = db.batch();
 
     // restore stock from current items
@@ -44,7 +56,8 @@ WHERE i.PDOC_PK = ?
         'PITEN_VLR_UNITARIO': item['PITEN_VLR_UNITARIO'],
         'PITEN_VLR_TOTAL': item['PITEN_VLR_TOTAL'],
         'PDOC_PK': orderPk,
-        'PDOC_UUID': item['PDOC_UUID'] ?? const Uuid().v4(),
+        // Ensure each item references the same order UUID
+        'PDOC_UUID': orderUuid,
       };
       batch.insert('PEDI_ITENS', data);
 
