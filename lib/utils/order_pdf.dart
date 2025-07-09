@@ -29,6 +29,13 @@ class OrderPdf {
     doc.addPage(
       pw.Page(
         margin: const pw.EdgeInsets.all(1 * PdfPageFormat.cm),
+        footer: (context) => pw.Align(
+          alignment: pw.Alignment.center,
+          child: pw.Text(
+            'SISCONT - Sistemas de Automação Comercial - (62) 3277-1090',
+            style: pw.TextStyle(color: PdfColors.lightBlue, fontSize: 10),
+          ),
+        ),
         build: (context) {
           pw.Widget cell(String text,
               {bool header = false, bool alignRight = false}) {
@@ -69,23 +76,46 @@ class OrderPdf {
               ),
               pw.SizedBox(height: 4),
               pw.Text('Vendedor: $vendorName'),
+              pw.SizedBox(height: 8),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                child: pw.Table(
+                  border: pw.TableBorder.all(),
+                  columnWidths: const {
+                    0: pw.FlexColumnWidth(2),
+                    1: pw.FlexColumnWidth(3),
+                  },
                   children: [
-                    pw.Text('Cliente: ${client['CCOT_NOME'] ?? ''}'),
+                    pw.TableRow(children: [
+                      cell('Cliente', header: true),
+                      cell(client['CCOT_NOME'] ?? ''),
+                    ]),
                     if (client['CCOT_CNPJ'] != null &&
                         (client['CCOT_CNPJ'] as String).isNotEmpty)
-                      pw.Text('CNPJ: ${client['CCOT_CNPJ']}'),
+                      pw.TableRow(children: [
+                        cell('CNPJ', header: true),
+                        cell(client['CCOT_CNPJ']),
+                      ]),
                     if (client['CCOT_IE'] != null &&
                         (client['CCOT_IE'] as String).isNotEmpty)
-                      pw.Text('IE: ${client['CCOT_IE']}'),
-                    if (address.isNotEmpty) pw.Text('Endereço: $address'),
+                      pw.TableRow(children: [
+                        cell('IE', header: true),
+                        cell(client['CCOT_IE']),
+                      ]),
+                    if (address.isNotEmpty)
+                      pw.TableRow(children: [
+                        cell('Endereço', header: true),
+                        cell(address),
+                      ]),
                     if (cityState.isNotEmpty)
-                      pw.Text(
-                          'Cidade: $cityState  CEP: ${client['CCOT_END_CEP'] ?? ''}'),
-                    pw.Text('Data: ${DateFormat('dd/MM/yyyy').format(date)}'),
+                      pw.TableRow(children: [
+                        cell('Cidade/CEP', header: true),
+                        cell('$cityState  CEP: ${client['CCOT_END_CEP'] ?? ''}'),
+                      ]),
+                    pw.TableRow(children: [
+                      cell('Data', header: true),
+                      cell(DateFormat('dd/MM/yyyy').format(date)),
+                    ]),
                   ],
                 ),
               ),
