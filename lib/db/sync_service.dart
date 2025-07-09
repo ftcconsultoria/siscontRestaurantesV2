@@ -272,17 +272,18 @@ class SyncService {
 
     // pull remote orders
     final vendorPk = await _vendorPk();
-    var orderQuery = supabase
+    var query = supabase
         .from('PEDI_DOCUMENTOS')
-        .select(
-            'PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO')
-        .order('PDOC_PK', ascending: false);
+        .select('PDOC_PK, CEMP_PK, PDOC_DT_EMISSAO, PDOC_VLR_TOTAL, CCOT_PK, CCOT_VEND_PK, PDOC_ESTADO_PEDIDO');
+
     if (companyPk != null) {
-      orderQuery = orderQuery.eq('CEMP_PK', companyPk);
+      query = query.eq('CEMP_PK', companyPk);
     }
     if (vendorPk != null) {
-      orderQuery = orderQuery.eq('CCOT_VEND_PK', vendorPk);
+      query = query.eq('CCOT_VEND_PK', vendorPk);
     }
+
+    final orderQuery = query.order('PDOC_PK', ascending: false);
     final remoteOrders = await orderQuery;
 
     final orders = List<Map<String, dynamic>>.from(remoteOrders);
