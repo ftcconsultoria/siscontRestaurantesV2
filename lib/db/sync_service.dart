@@ -300,7 +300,7 @@ class SyncService {
       final remoteItems = await supabase
           .from('PEDI_ITENS')
           .select(
-              'PITEN_PK, PITEN_UUID, PDOC_PK, EPRO_PK, PITEN_QTD, PITEN_VLR_UNITARIO, PITEN_VLR_TOTAL')
+              'PITEN_PK, PDOC_UUID, PDOC_PK, EPRO_PK, PITEN_QTD, PITEN_VLR_UNITARIO, PITEN_VLR_TOTAL')
           .filter('PDOC_PK', 'in', '($pkList)');
       final items = List<Map<String, dynamic>>.from(remoteItems);
       await _itemDao.replaceAll(items);
