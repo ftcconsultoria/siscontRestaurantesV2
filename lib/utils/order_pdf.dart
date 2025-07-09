@@ -9,7 +9,8 @@ class OrderPdf {
   /// Returns the PDF file as [Uint8List].
   static Future<Uint8List> generate(
     Map<String, dynamic> order,
-    String clientName,
+    Map<String, dynamic> client,
+    String vendorName,
     List<Map<String, dynamic>> items,
   ) async {
     final doc = pw.Document(
@@ -45,6 +46,17 @@ class OrderPdf {
             );
           }
 
+          final addressParts = [
+            client['CCOT_END_NOME_LOGRADOURO'],
+            client['CCOT_END_NUMERO'],
+            client['CCOT_END_COMPLEMENTO']
+          ].whereType<String>().where((e) => e.isNotEmpty).toList();
+          final address = addressParts.join(', ');
+          final cityState = [
+            client['CCOT_END_MUNICIPIO'],
+            client['CCOT_END_UF']
+          ].whereType<String>().where((e) => e.isNotEmpty).join(' - ');
+
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -56,12 +68,23 @@ class OrderPdf {
                 ),
               ),
               pw.SizedBox(height: 4),
+              pw.Text('Vendedor: $vendorName'),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Text('Cliente: $clientName'),
+                    pw.Text('Cliente: ${client['CCOT_NOME'] ?? ''}'),
+                    if (client['CCOT_CNPJ'] != null &&
+                        (client['CCOT_CNPJ'] as String).isNotEmpty)
+                      pw.Text('CNPJ: ${client['CCOT_CNPJ']}'),
+                    if (client['CCOT_IE'] != null &&
+                        (client['CCOT_IE'] as String).isNotEmpty)
+                      pw.Text('IE: ${client['CCOT_IE']}'),
+                    if (address.isNotEmpty) pw.Text('Endereço: $address'),
+                    if (cityState.isNotEmpty)
+                      pw.Text(
+                          'Cidade: $cityState  CEP: ${client['CCOT_END_CEP'] ?? ''}'),
                     pw.Text('Data: ${DateFormat('dd/MM/yyyy').format(date)}'),
                   ],
                 ),

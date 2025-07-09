@@ -10,6 +10,8 @@ import '../utils/order_pdf.dart';
 import '../db/contact_dao.dart';
 import '../db/product_dao.dart';
 import '../db/order_item_dao.dart';
+import '../db/user_dao.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'barcode_scanner_screen.dart';
 
 class OrderFormScreen extends StatefulWidget {
@@ -31,6 +33,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   final ContactDao _contactDao = ContactDao();
   final ProductDao _productDao = ProductDao();
   final OrderItemDao _itemDao = OrderItemDao();
+  final UserDao _userDao = UserDao();
   List<Map<String, dynamic>> _contacts = [];
   List<Map<String, dynamic>> _products = [];
   List<Map<String, dynamic>> _items = [];
@@ -81,6 +84,17 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     final total = _items.fold<double>(
         0, (p, e) => p + (e['PITEN_VLR_TOTAL'] as num? ?? 0).toDouble());
     _valueController.text = total.toStringAsFixed(2);
+  }
+
+  Future<String> _getVendorName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userPk = prefs.getInt('logged_user_pk');
+    if (userPk == null) return '';
+    final user = await _userDao.getByPk(userPk);
+    final vendPk = user?['CCOT_VEND_PK'] as int?;
+    if (vendPk == null) return '';
+    final vend = await _contactDao.getByPk(vendPk);
+    return vend?['CCOT_NOME'] ?? '';
   }
 
   @override
@@ -489,9 +503,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
   Future<void> _printOrder() async {
     if (widget.order == null) return;
+    final client = await _contactDao.getByPk(widget.order!['CCOT_PK'] as int);
+    final vendor = await _getVendorName();
     final pdf = await OrderPdf.generate(
       widget.order!,
-      _clientController.text,
+      client ?? {'CCOT_NOME': _clientController.text},
+      vendor,
       _items,
     );
     await Printing.layoutPdf(onLayout: (_) async => pdf);
@@ -499,9 +516,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
   Future<void> _shareOrder() async {
     if (widget.order == null) return;
+    final client = await _contactDao.getByPk(widget.order!['CCOT_PK'] as int);
+    final vendor = await _getVendorName();
     final pdf = await OrderPdf.generate(
       widget.order!,
-      _clientController.text,
+      client ?? {'CCOT_NOME': _clientController.text},
+      vendor,
       _items,
     );
     final dir = await getTemporaryDirectory();
