@@ -63,7 +63,9 @@ public URL so the app can display images offline based on the contents of the
 Client information is stored in the `CADE_CONTATO` table. Each record also
 includes a `CEMP_PK` foreign key so that contacts belong to a specific
 company. The synchronization routine now uploads these client records to
-Supabase together with products and photos.
+Supabase together with products and photos. When importing data from
+Supabase the app now also retrieves all client records for the active
+company.
 
 Each client record also stores latitude and longitude coordinates using the
 `CCOT_END_LAT` and `CCOT_END_LON` columns in the `CADE_CONTATO` table.

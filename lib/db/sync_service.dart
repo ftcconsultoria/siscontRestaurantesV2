@@ -190,7 +190,7 @@ class SyncService {
     final supabase = Supabase.instance.client;
     final companyPk = await _companyPk();
 
-    const totalSteps = 4;
+    const totalSteps = 5;
     int step = 0;
     void report() => onProgress?.call(step / totalSteps);
     report();
@@ -248,6 +248,25 @@ class SyncService {
     } else {
       await _dao.replaceAllPhotos([]);
     }
+    step++;
+    report();
+
+    // pull remote clients
+    final contactQuery = supabase
+        .from('CADE_CONTATO')
+        .select(
+            'CCOT_PK, CCOT_NOME, CCOT_FANTASIA, CCOT_CNPJ, CCOT_IE, CCOT_END_CEP, CCOT_END_NOME_LOGRADOURO, CCOT_END_COMPLEMENTO, CCOT_END_QUADRA, CCOT_END_LOTE, CCOT_END_NUMERO, CCOT_END_BAIRRO, CCOT_END_MUNICIPIO, CCOT_END_CODIGO_IBGE, CCOT_END_UF, CCOT_END_LAT, CCOT_END_LON, CEMP_PK, CCOT_TP_PESSOA')
+        .order('CCOT_NOME');
+    final remoteContacts = companyPk != null
+        ? await supabase
+            .from('CADE_CONTATO')
+            .select(
+                'CCOT_PK, CCOT_NOME, CCOT_FANTASIA, CCOT_CNPJ, CCOT_IE, CCOT_END_CEP, CCOT_END_NOME_LOGRADOURO, CCOT_END_COMPLEMENTO, CCOT_END_QUADRA, CCOT_END_LOTE, CCOT_END_NUMERO, CCOT_END_BAIRRO, CCOT_END_MUNICIPIO, CCOT_END_CODIGO_IBGE, CCOT_END_UF, CCOT_END_LAT, CCOT_END_LON, CEMP_PK, CCOT_TP_PESSOA')
+            .eq('CEMP_PK', companyPk)
+            .order('CCOT_NOME')
+        : await contactQuery;
+    final contacts = List<Map<String, dynamic>>.from(remoteContacts);
+    await _contactDao.replaceAll(contacts);
     step++;
     report();
 

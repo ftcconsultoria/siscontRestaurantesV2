@@ -42,4 +42,16 @@ class ContactDao {
     final db = await _db;
     await db.delete('CADE_CONTATO', where: 'CCOT_PK = ?', whereArgs: [id]);
   }
+
+  /// Replaces all existing contacts with the provided list.
+  Future<void> replaceAll(List<Map<String, dynamic>> contacts) async {
+    final db = await _db;
+    final batch = db.batch();
+    batch.delete('CADE_CONTATO');
+    for (final c in contacts) {
+      batch.insert('CADE_CONTATO', c,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
 }
