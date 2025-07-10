@@ -75,6 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       initialDate: _startDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      locale: const Locale('pt', 'BR'),
     );
     if (picked != null) {
       setState(() {
@@ -90,6 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       initialDate: _endDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      locale: const Locale('pt', 'BR'),
     );
     if (picked != null) {
       setState(() {
@@ -128,8 +130,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             onPressed: _pickStartDate,
                           ),
                         ),
-                        controller: TextEditingController(
-                            text: DateFormat('yyyy-MM-dd').format(_startDate)),
+                          controller: TextEditingController(
+                              text: DateFormat('dd/MM/yyyy').format(_startDate)),
                         onTap: _pickStartDate,
                       ),
                     ),
@@ -144,8 +146,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             onPressed: _pickEndDate,
                           ),
                         ),
-                        controller: TextEditingController(
-                            text: DateFormat('yyyy-MM-dd').format(_endDate)),
+                          controller: TextEditingController(
+                              text: DateFormat('dd/MM/yyyy').format(_endDate)),
                         onTap: _pickEndDate,
                       ),
                     ),
