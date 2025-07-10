@@ -108,6 +108,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       initialDate: _date,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      locale: const Locale('pt', 'BR'),
     );
     if (picked != null) {
       setState(() {
@@ -579,8 +580,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                           )
                         : null,
                   ),
-                  controller: TextEditingController(
-                      text: DateFormat('yyyy-MM-dd').format(_date)),
+                    controller: TextEditingController(
+                        text: DateFormat('dd/MM/yyyy').format(_date)),
                   onTap: widget.order == null ? _pickDate : null,
                 ),
               ),
