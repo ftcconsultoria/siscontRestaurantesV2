@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'dart:convert';
 import '../db/log_event_dao.dart';
 
 /// Screen that lists log events stored in the local database.
@@ -136,12 +137,23 @@ class _LogListScreenState extends State<LogListScreen> {
                 final entidade = log['LOG_ENTIDADE'] ?? '';
                 final tipo = log['LOG_TIPO'] ?? '';
                 final mensagem = log['LOG_MENSAGEM'] ?? '';
+                final dadosStr = log['LOG_DADOS']?.toString();
+                String dados = '';
+                if (dadosStr != null && dadosStr.isNotEmpty) {
+                  try {
+                    final obj = jsonDecode(dadosStr);
+                    dados = const JsonEncoder.withIndent('  ').convert(obj);
+                  } catch (_) {
+                    dados = dadosStr;
+                  }
+                }
                 return ListTile(
                   title: Text('$entidade - $tipo'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (mensagem.toString().isNotEmpty) Text(mensagem),
+                      if (dados.isNotEmpty) Text(dados),
                       Text(dateText),
                     ],
                   ),
