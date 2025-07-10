@@ -197,7 +197,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             _numeroController.text =
                 est['numero']?.toString() ?? _numeroController.text;
             _complementoController.text =
-                (est['complemento'] ?? _complementoController.text).toString();
+                (est['complemento'] ?? _complementoController.text)
+                    .toString()
+                    .replaceAll(RegExp(r'\s+'), ' ')
+                    .trim();
             _bairroController.text =
                 (est['bairro'] ?? _bairroController.text).toString();
             final cidade = est['cidade'] as Map<String, dynamic>?;
