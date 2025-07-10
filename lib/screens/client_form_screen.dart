@@ -361,8 +361,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       'CCOT_END_MUNICIPIO': _municipioController.text.toUpperCase(),
       'CCOT_END_CODIGO_IBGE': _codigoIbgeController.text,
       'CCOT_END_UF': _ufController.text,
-      'CCOT_END_LAT': _latController.text,
-      'CCOT_END_LON': _lonController.text,
+      'CCOT_END_LAT':
+          double.tryParse(_latController.text.replaceAll(',', '.')),
+      'CCOT_END_LON':
+          double.tryParse(_lonController.text.replaceAll(',', '.')),
       'CCOT_TP_PESSOA': _tipoPessoa,
     };
     widget.onSave(data);
