@@ -119,12 +119,27 @@ class _ConfigScreenState extends State<ConfigScreen> {
         system = Platform.operatingSystemVersion;
       }
       final supabase = Supabase.instance.client;
-      await supabase.from('dispositivos_autorizados').upsert({
+      final data = {
         'uuid': uuid,
         'aparelho': model,
         'sistema': system,
         'CEMP_PK': companyPk,
-      });
+      };
+      try {
+        await supabase.from('dispositivos_autorizados').upsert(data);
+      } catch (e, s) {
+        await _logDao.insert(
+          entidade: 'CONFIG',
+          tipo: 'ERRO_EXPORT',
+          tela: 'ConfigScreen',
+          mensagem: e.toString(),
+          dados: {
+            'tabela': 'dispositivos_autorizados',
+            'objeto': data,
+            'stack': s.toString(),
+          },
+        );
+      }
     } catch (_) {}
   }
 

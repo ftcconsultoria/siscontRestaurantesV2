@@ -96,7 +96,22 @@ class SyncService {
       if (companyPk != null) {
         data['CEMP_PK'] = companyPk;
       }
-      await supabase.from('CADE_CONTATO').upsert(data);
+      try {
+        await supabase.from('CADE_CONTATO').upsert(data);
+      } catch (e, s) {
+        await _logDao.insert(
+          entidade: 'SYNC',
+          tipo: 'ERRO_EXPORT',
+          tela: 'SyncService',
+          mensagem: e.toString(),
+          dados: {
+            'tabela': 'CADE_CONTATO',
+            'objeto': data,
+            'stack': s.toString(),
+          },
+        );
+        rethrow;
+      }
       completed++;
       report();
       updateStatus('Clientes');
@@ -123,24 +138,60 @@ class SyncService {
               (photo['EPRO_COD_EAN'] ?? productPk).toString();
           final uploadPath =
               '${companyCnpj ?? 'sem_cnpj'}/$productCode/$fileName';
-          await supabase.storage
-              .from('fotos-produtos')
-              .uploadBinary(uploadPath, await file.readAsBytes());
-          final publicUrl =
-              supabase.storage.from('fotos-produtos').getPublicUrl(uploadPath);
-          await supabase.from('ESTQ_PRODUTO_FOTO').upsert({
-            'EPRO_PK': productPk,
-            'EPRO_FOTO_URL': publicUrl,
-          });
-          await _dao.upsertPhoto(productPk, url: publicUrl, sent: true);
-          await file.delete();
+          try {
+            await supabase.storage
+                .from('fotos-produtos')
+                .uploadBinary(uploadPath, await file.readAsBytes());
+            final publicUrl =
+                supabase.storage.from('fotos-produtos').getPublicUrl(uploadPath);
+            await supabase.from('ESTQ_PRODUTO_FOTO').upsert({
+              'EPRO_PK': productPk,
+              'EPRO_FOTO_URL': publicUrl,
+            });
+            await _dao.upsertPhoto(productPk, url: publicUrl, sent: true);
+            await file.delete();
+          } catch (e, s) {
+            await _logDao.insert(
+              entidade: 'SYNC',
+              tipo: 'ERRO_EXPORT',
+              tela: 'SyncService',
+              mensagem: e.toString(),
+              dados: {
+                'tabela': 'ESTQ_PRODUTO_FOTO',
+                'objeto': {
+                  'EPRO_PK': productPk,
+                  'uploadPath': uploadPath,
+                },
+                'stack': s.toString(),
+              },
+            );
+            rethrow;
+          }
         }
       } else if (url != null) {
-        await supabase.from('ESTQ_PRODUTO_FOTO').upsert({
-          'EPRO_PK': productPk,
-          'EPRO_FOTO_URL': url,
-        });
-        await _dao.upsertPhoto(productPk, url: url, sent: true);
+        try {
+          await supabase.from('ESTQ_PRODUTO_FOTO').upsert({
+            'EPRO_PK': productPk,
+            'EPRO_FOTO_URL': url,
+          });
+          await _dao.upsertPhoto(productPk, url: url, sent: true);
+        } catch (e, s) {
+          await _logDao.insert(
+            entidade: 'SYNC',
+            tipo: 'ERRO_EXPORT',
+            tela: 'SyncService',
+            mensagem: e.toString(),
+            dados: {
+              'tabela': 'ESTQ_PRODUTO_FOTO',
+              'objeto': {
+                'EPRO_PK': productPk,
+                'EPRO_FOTO_URL': url,
+              },
+              'stack': s.toString(),
+            },
+          );
+          rethrow;
+        }
       }
       completed++;
       report();
@@ -157,7 +208,22 @@ class SyncService {
         orderData['CEMP_PK'] = companyPk;
       }
       orderData['PDOC_ESTADO_PEDIDO'] = 'ENVIADO_CLOUD';
-      await supabase.from('PEDI_DOCUMENTOS').upsert(orderData);
+      try {
+        await supabase.from('PEDI_DOCUMENTOS').upsert(orderData);
+      } catch (e, s) {
+        await _logDao.insert(
+          entidade: 'SYNC',
+          tipo: 'ERRO_EXPORT',
+          tela: 'SyncService',
+          mensagem: e.toString(),
+          dados: {
+            'tabela': 'PEDI_DOCUMENTOS',
+            'objeto': orderData,
+            'stack': s.toString(),
+          },
+        );
+        rethrow;
+      }
 
       if (orderPk != null) {
         final items = await _itemDao.getByOrder(orderPk);
@@ -166,7 +232,22 @@ class SyncService {
             ..remove('EPRO_DESCRICAO')
             ..remove('EPRO_COD_EAN')
             ..remove('EPRO_ESTQ_ATUAL');
-          await supabase.from('PEDI_ITENS').upsert(itemData);
+          try {
+            await supabase.from('PEDI_ITENS').upsert(itemData);
+          } catch (e, s) {
+            await _logDao.insert(
+              entidade: 'SYNC',
+              tipo: 'ERRO_EXPORT',
+              tela: 'SyncService',
+              mensagem: e.toString(),
+              dados: {
+                'tabela': 'PEDI_ITENS',
+                'objeto': itemData,
+                'stack': s.toString(),
+              },
+            );
+            rethrow;
+          }
           completed++;
           report();
           updateStatus('PEDI_ITENS');
@@ -183,7 +264,22 @@ class SyncService {
     for (final log in localLogs) {
       final logData = Map<String, dynamic>.from(log)
         ..remove('LOG_PK');
-      await supabase.from('SIS_LOG_EVENTO').insert(logData);
+      try {
+        await supabase.from('SIS_LOG_EVENTO').insert(logData);
+      } catch (e, s) {
+        await _logDao.insert(
+          entidade: 'SYNC',
+          tipo: 'ERRO_EXPORT',
+          tela: 'SyncService',
+          mensagem: e.toString(),
+          dados: {
+            'tabela': 'SIS_LOG_EVENTO',
+            'objeto': logData,
+            'stack': s.toString(),
+          },
+        );
+        rethrow;
+      }
       completed++;
       report();
       updateStatus('SIS_LOG_EVENTO');
