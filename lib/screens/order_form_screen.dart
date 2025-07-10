@@ -29,7 +29,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   late DateTime _date;
   late TextEditingController _valueController;
   late TextEditingController _clientController;
-  int? _contactPk;
+  String? _contactCnpj;
   final ContactDao _contactDao = ContactDao();
   final ProductDao _productDao = ProductDao();
   final OrderItemDao _itemDao = OrderItemDao();
@@ -47,7 +47,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     _date = dateStr != null && dateStr.isNotEmpty
         ? DateTime.tryParse(dateStr) ?? DateTime.now()
         : DateTime.now();
-    _contactPk = widget.order?['CCOT_PK'] as int?;
+    _contactCnpj = widget.order?['CCOT_CNPJ'] as String?;
     _loadContacts();
     _loadProducts();
     _loadItems();
@@ -57,9 +57,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     final list = await _contactDao.getAll();
     setState(() {
       _contacts = list;
-      if (_contactPk != null) {
-        final current = list.firstWhere((c) => c['CCOT_PK'] == _contactPk,
-            orElse: () => {});
+      if (_contactCnpj != null) {
+        final current =
+            list.firstWhere((c) => c['CCOT_CNPJ'] == _contactCnpj, orElse: () => {});
         _clientController.text = current['CCOT_NOME'] ?? '';
       }
     });
@@ -203,7 +203,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
     if (selected != null) {
       setState(() {
-        _contactPk = selected['CCOT_PK'] as int?;
+        _contactCnpj = selected['CCOT_CNPJ'] as String?;
         _clientController.text = selected['CCOT_NOME'] ?? '';
       });
     }
@@ -489,7 +489,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     final data = <String, dynamic>{
       'PDOC_DT_EMISSAO': DateFormat('yyyy-MM-dd').format(_date),
       'PDOC_VLR_TOTAL': total,
-      'CCOT_PK': _contactPk,
+      'CCOT_CNPJ': _contactCnpj,
     };
     if (widget.order != null) {
       data['PDOC_PK'] = widget.order!['PDOC_PK'];
@@ -500,7 +500,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
   Future<void> _printOrder() async {
     if (widget.order == null) return;
-    final client = await _contactDao.getByPk(widget.order!['CCOT_PK'] as int);
+    final client =
+        await _contactDao.getByCnpj(widget.order!['CCOT_CNPJ'] as String);
     final vendor = await _getVendorName();
     final pdf = await OrderPdf.generate(
       widget.order!,
@@ -513,7 +514,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
   Future<void> _shareOrder() async {
     if (widget.order == null) return;
-    final client = await _contactDao.getByPk(widget.order!['CCOT_PK'] as int);
+    final client =
+        await _contactDao.getByCnpj(widget.order!['CCOT_CNPJ'] as String);
     final vendor = await _getVendorName();
     final pdf = await OrderPdf.generate(
       widget.order!,

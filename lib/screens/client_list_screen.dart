@@ -39,7 +39,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
 
   Future<void> _addOrUpdate(Map<String, dynamic> data) async {
     final messenger = ScaffoldMessenger.of(context);
-    final isNew = !data.containsKey('CCOT_PK');
+    final isNew = !_clients.any((c) => c['CCOT_CNPJ'] == data['CCOT_CNPJ']);
     try {
       await _dao.insertOrUpdate(data);
       if (isNew) {
@@ -61,12 +61,12 @@ class _ClientListScreenState extends State<ClientListScreen> {
     await _refresh();
   }
 
-  Future<void> _delete(int id) async {
-    await _dao.delete(id);
+  Future<void> _delete(String cnpj) async {
+    await _dao.delete(cnpj);
     await _refresh();
   }
 
-  Future<void> _confirmDelete(int id) async {
+  Future<void> _confirmDelete(String cnpj) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -85,7 +85,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
       ),
     );
     if (confirmed == true) {
-      await _delete(id);
+      await _delete(cnpj);
     }
   }
 
@@ -212,7 +212,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () => _confirmDelete(c['CCOT_PK']),
+                              onPressed: () => _confirmDelete(c['CCOT_CNPJ']),
                             ),
                           ],
                         ),

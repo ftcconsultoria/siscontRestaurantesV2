@@ -46,9 +46,6 @@ class _ContactFormDialogState extends State<ContactFormDialog> {
       'CCOT_CNPJ': _cnpjController.text,
       'CCOT_IE': _ieController.text,
     };
-    if (widget.contact != null) {
-      data['CCOT_PK'] = widget.contact!['CCOT_PK'];
-    }
     widget.onSave(data);
     Navigator.pop(context);
   }
