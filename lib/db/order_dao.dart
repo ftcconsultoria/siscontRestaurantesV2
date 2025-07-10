@@ -32,9 +32,9 @@ class OrderDao {
     final companyPk = await _getCompanyPk();
     final rows = await db.rawQuery('''
 SELECT d.PDOC_PK, d.PDOC_DT_EMISSAO, d.PDOC_VLR_TOTAL,
-       d.CCOT_PK, c.CCOT_NOME, d.CCOT_VEND_PK, d.PDOC_ESTADO_PEDIDO
+       d.CCOT_CNPJ, c.CCOT_NOME, d.CCOT_VEND_PK, d.PDOC_ESTADO_PEDIDO
 FROM PEDI_DOCUMENTOS d
-LEFT JOIN CADE_CONTATO c ON d.CCOT_PK = c.CCOT_PK
+LEFT JOIN CADE_CONTATO c ON d.CCOT_CNPJ = c.CCOT_CNPJ
 ${companyPk != null ? 'WHERE d.CEMP_PK = ?' : ''}
 ORDER BY d.PDOC_PK DESC
 ''', companyPk != null ? [companyPk] : null);

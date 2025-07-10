@@ -37,10 +37,10 @@ class ContactDao {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  /// Deletes a contact by its primary key.
-  Future<void> delete(int id) async {
+  /// Deletes a contact by its CNPJ.
+  Future<void> delete(String cnpj) async {
     final db = await _db;
-    await db.delete('CADE_CONTATO', where: 'CCOT_PK = ?', whereArgs: [id]);
+    await db.delete('CADE_CONTATO', where: 'CCOT_CNPJ = ?', whereArgs: [cnpj]);
   }
 
   /// Replaces all existing contacts with the provided list.
@@ -55,14 +55,15 @@ class ContactDao {
     await batch.commit(noResult: true);
   }
 
-  /// Returns a contact by its primary key or null if not found.
-  Future<Map<String, dynamic>?> getByPk(int pk) async {
+  /// Returns a contact by its CNPJ or null if not found.
+  Future<Map<String, dynamic>?> getByCnpj(String cnpj) async {
     final db = await _db;
     final companyPk = await _getCompanyPk();
     final result = await db.query(
       'CADE_CONTATO',
-      where: companyPk != null ? 'CCOT_PK = ? AND CEMP_PK = ?' : 'CCOT_PK = ?',
-      whereArgs: companyPk != null ? [pk, companyPk] : [pk],
+      where:
+          companyPk != null ? 'CCOT_CNPJ = ? AND CEMP_PK = ?' : 'CCOT_CNPJ = ?',
+      whereArgs: companyPk != null ? [cnpj, companyPk] : [cnpj],
       limit: 1,
     );
     if (result.isNotEmpty) return result.first;

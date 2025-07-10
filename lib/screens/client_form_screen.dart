@@ -356,9 +356,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       'CCOT_END_LON': _lonController.text,
       'CCOT_TP_PESSOA': _tipoPessoa,
     };
-    if (widget.client != null) {
-      data['CCOT_PK'] = widget.client!['CCOT_PK'];
-    }
     widget.onSave(data);
     Navigator.pop(context);
   }
