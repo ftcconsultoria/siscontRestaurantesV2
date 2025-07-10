@@ -187,13 +187,15 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           _nameController.text =
               (data['razao_social'] ?? _nameController.text).toString();
           final est = data['estabelecimento'] as Map<String, dynamic>?;
+          var fantasia = data['nome_fantasia'] ??
+              data['fantasia'] ??
+              est?['nome_fantasia'] ??
+              est?['fantasia'];
+          if (fantasia == null || fantasia.toString().trim().isEmpty) {
+            fantasia = data['razao_social'];
+          }
           _fantasiaController.text =
-              (data['nome_fantasia'] ??
-                      data['fantasia'] ??
-                      est?['nome_fantasia'] ??
-                      est?['fantasia'] ??
-                      _fantasiaController.text)
-                  .toString();
+              (fantasia ?? _fantasiaController.text).toString();
           if (est != null) {
             _cepController.text = est['cep']?.toString() ?? _cepController.text;
             _logradouroController.text =
