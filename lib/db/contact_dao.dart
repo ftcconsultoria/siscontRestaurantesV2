@@ -33,8 +33,22 @@ class ContactDao {
     if (companyPk != null) {
       data['CEMP_PK'] = companyPk;
     }
+    final lat = _parseDouble(data['CCOT_END_LAT']);
+    final lon = _parseDouble(data['CCOT_END_LON']);
+    data['CCOT_END_LAT'] = lat;
+    data['CCOT_END_LON'] = lon;
     await db.insert('CADE_CONTATO', data,
         conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      final cleaned = value.replaceAll(',', '.');
+      return double.tryParse(cleaned);
+    }
+    return null;
   }
 
   /// Deletes a contact by its CNPJ.
