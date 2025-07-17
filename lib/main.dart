@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
   /// Builds the root widget and sets up the app theme and initial screen.
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ERP Mobile',
+      title: 'SISCONT Restaurantes',
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
