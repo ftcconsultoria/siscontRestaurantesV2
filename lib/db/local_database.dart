@@ -5,13 +5,11 @@ import 'package:sqflite/sqflite.dart';
 class LocalDatabase {
   static Database? _db;
 
-  /// Returns the path to the database file.
   static Future<String> get path async {
     final documentsDir = await getApplicationDocumentsDirectory();
     return join(documentsDir.path, 'erp_mobile.db');
   }
 
-  /// Closes the database if it's open.
   static Future<void> close() async {
     if (_db != null) {
       await _db!.close();
@@ -19,279 +17,126 @@ class LocalDatabase {
     }
   }
 
-  /// Returns a singleton instance of the local database.
   static Future<Database> get instance async {
     if (_db != null) return _db!;
     _db = await _initDb();
     return _db!;
   }
 
-  /// Opens the database and creates tables on first use.
   static Future<Database> _initDb() async {
     final dbPath = await path;
     return openDatabase(
       dbPath,
-      version: 15,
-      onCreate: (db, version) async {
-        await db.execute('''
-CREATE TABLE ESTQ_PRODUTO (
-  EPRO_PK INTEGER PRIMARY KEY,
-  EPRO_DESCRICAO TEXT,
-  EPRO_VLR_VAREJO REAL,
-  EPRO_ESTQ_ATUAL REAL,
-  EPRO_COD_EAN TEXT,
-  CEMP_PK INTEGER
-)
-''');
-        await db.execute('''
-CREATE TABLE ESTQ_PRODUTO_FOTO (
-  EPRO_FOTO_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  EPRO_PK INTEGER,
-  EPRO_FOTO_URL TEXT,
-  EPRO_FOTO_PATH TEXT,
-  EPRO_FOTO_ENVIADA INTEGER DEFAULT 0
-)
-''');
-        await db.execute('''
-CREATE TABLE CADE_EMPRESA (
-  CEMP_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  CEMP_NOME_FANTASIA TEXT NOT NULL,
-  CEMP_RAZAO_SOCIAL TEXT,
-  CEMP_CNPJ TEXT,
-  CEMP_IE TEXT
-)
-''');
-        await db.execute('''
-CREATE TABLE CADE_USUARIO (
-  CUSU_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  CUSU_USUARIO TEXT NOT NULL,
-  CUSU_SENHA TEXT,
-  CEMP_PK INTEGER,
-  CCOT_VEND_PK INTEGER
-)
-''');
-        await db.execute('''
-CREATE TABLE CADE_CONTATO (
-  CCOT_CNPJ TEXT PRIMARY KEY,
-  CCOT_NOME TEXT NOT NULL,
-  CCOT_FANTASIA TEXT,
-  CCOT_IE TEXT,
-  CCOT_END_CEP TEXT,
-  CCOT_END_NOME_LOGRADOURO TEXT,
-  CCOT_END_COMPLEMENTO TEXT,
-  CCOT_END_QUADRA TEXT,
-  CCOT_END_LOTE TEXT,
-  CCOT_END_NUMERO TEXT,
-  CCOT_END_BAIRRO TEXT,
-  CCOT_END_MUNICIPIO TEXT,
-  CCOT_END_CODIGO_IBGE TEXT,
-  CCOT_END_UF TEXT,
-  CCOT_END_LAT REAL,
-  CCOT_END_LON REAL,
-  CEMP_PK INTEGER,
-  CCOT_TP_PESSOA TEXT
-)
-''');
-        await db.execute('''
-CREATE TABLE PEDI_DOCUMENTOS (
-  PDOC_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  PDOC_UUID TEXT,
-  CEMP_PK INTEGER NOT NULL,
-  PDOC_DT_EMISSAO TEXT,
-  PDOC_VLR_TOTAL REAL,
-  CCOT_CNPJ TEXT,
-  CCOT_VEND_PK INTEGER,
-  PDOC_ESTADO_PEDIDO TEXT,
-  FOREIGN KEY(CCOT_CNPJ) REFERENCES CADE_CONTATO(CCOT_CNPJ),
-  FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
-)
-''');
-        await db.execute('''
-CREATE TABLE PEDI_ITENS (
-  PITEN_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  PDOC_UUID TEXT,
-  PDOC_PK INTEGER NOT NULL,
-  EPRO_PK INTEGER,
-  PITEN_QTD REAL,
-  PITEN_VLR_UNITARIO REAL,
-  PITEN_VLR_TOTAL REAL,
-  FOREIGN KEY(EPRO_PK) REFERENCES ESTQ_PRODUTO(EPRO_PK),
-  FOREIGN KEY(PDOC_PK) REFERENCES PEDI_DOCUMENTOS(PDOC_PK)
-)
-''');
-        await db.execute('''
-CREATE TABLE SIS_LOG_EVENTO (
-  LOG_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  CEMP_PK INTEGER NOT NULL,
-  CUSU_PK INTEGER,
-  LOG_ENTIDADE TEXT NOT NULL,
-  LOG_CHAVE INTEGER,
-  LOG_TIPO TEXT NOT NULL,
-  LOG_TELA TEXT,
-  LOG_MENSAGEM TEXT,
-  LOG_DADOS TEXT,
-  LOG_DT TEXT DEFAULT CURRENT_TIMESTAMP
-)
-''');
-      },
+      version: 1,
+      onCreate: _createSchema,
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute('''
-CREATE TABLE CADE_EMPRESA (
-  CEMP_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  CEMP_NOME_FANTASIA TEXT NOT NULL,
-  CEMP_RAZAO_SOCIAL TEXT,
-  CEMP_CNPJ TEXT,
-  CEMP_IE TEXT
-)
-''');
-        }
-        if (oldVersion < 3) {
-          await db
-              .execute('ALTER TABLE ESTQ_PRODUTO ADD COLUMN CEMP_PK INTEGER');
-        }
-        if (oldVersion < 4) {
-          await db.execute('''
-CREATE TABLE CADE_USUARIO (
-  CUSU_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  CUSU_USUARIO TEXT NOT NULL,
-  CUSU_SENHA TEXT,
-  CEMP_PK INTEGER,
-  CCOT_VEND_PK INTEGER
-)
-''');
-        }
-        if (oldVersion < 5) {
-          await db.execute('''
-CREATE TABLE CADE_CONTATO (
-  CCOT_CNPJ TEXT PRIMARY KEY,
-  CCOT_NOME TEXT NOT NULL,
-  CCOT_FANTASIA TEXT,
-  CCOT_IE TEXT,
-  CCOT_END_CEP TEXT,
-  CCOT_END_NOME_LOGRADOURO TEXT,
-  CCOT_END_COMPLEMENTO TEXT,
-  CCOT_END_QUADRA TEXT,
-  CCOT_END_LOTE TEXT,
-  CCOT_END_NUMERO TEXT,
-  CCOT_END_BAIRRO TEXT,
-  CCOT_END_MUNICIPIO TEXT,
-  CCOT_END_CODIGO_IBGE TEXT,
-  CCOT_END_UF TEXT,
-  CEMP_PK INTEGER,
-          CCOT_TP_PESSOA TEXT
-)
-''');
-        }
-        if (oldVersion < 6) {
-          await db.execute('''
-CREATE TABLE PEDI_DOCUMENTOS (
-  PDOC_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  PDOC_UUID TEXT,
-  CEMP_PK INTEGER NOT NULL,
-  PDOC_DT_EMISSAO TEXT,
-  PDOC_VLR_TOTAL REAL,
-  CCOT_CNPJ TEXT,
-  CCOT_VEND_PK INTEGER,
-  FOREIGN KEY(CCOT_CNPJ) REFERENCES CADE_CONTATO(CCOT_CNPJ),
-  FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
-)''');
-        }
-        if (oldVersion < 7) {
-          await db.execute('''
-CREATE TABLE PEDI_ITENS (
-  PITEN_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  PDOC_UUID TEXT,
-  PDOC_PK INTEGER NOT NULL,
-  EPRO_PK INTEGER,
-  PITEN_QTD REAL,
-  PITEN_VLR_UNITARIO REAL,
-  PITEN_VLR_TOTAL REAL,
-  FOREIGN KEY(EPRO_PK) REFERENCES ESTQ_PRODUTO(EPRO_PK),
-  FOREIGN KEY(PDOC_PK) REFERENCES PEDI_DOCUMENTOS(PDOC_PK)
-)''');
-        }
-        if (oldVersion < 8) {
-          await db.execute(
-              'ALTER TABLE CADE_CONTATO ADD COLUMN CCOT_END_LAT REAL');
-          await db.execute(
-              'ALTER TABLE CADE_CONTATO ADD COLUMN CCOT_END_LON REAL');
-        }
-        if (oldVersion < 9) {
-          await db.execute(
-              'ALTER TABLE ESTQ_PRODUTO_FOTO ADD COLUMN EPRO_FOTO_PATH TEXT');
-        }
-        if (oldVersion < 10) {
-          await db.execute(
-              'ALTER TABLE CADE_USUARIO ADD COLUMN CCOT_VEND_PK INTEGER');
-          await db.execute(
-              'ALTER TABLE PEDI_DOCUMENTOS ADD COLUMN CCOT_VEND_PK INTEGER');
-        }
-        if (oldVersion < 11) {
-          await db.execute(
-              'ALTER TABLE PEDI_DOCUMENTOS ADD COLUMN PDOC_ESTADO_PEDIDO TEXT');
-        }
-        if (oldVersion < 12) {
-          await db.execute('''
-CREATE TABLE SIS_LOG_EVENTO (
-  LOG_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  CEMP_PK INTEGER NOT NULL,
-  CUSU_PK INTEGER,
-  LOG_ENTIDADE TEXT NOT NULL,
-  LOG_CHAVE INTEGER,
-  LOG_TIPO TEXT NOT NULL,
-  LOG_TELA TEXT,
-  LOG_MENSAGEM TEXT,
-  LOG_DADOS TEXT,
-  LOG_DT TEXT DEFAULT CURRENT_TIMESTAMP
-)''');
-        }
-        if (oldVersion < 13) {
-          await db.execute('ALTER TABLE PEDI_DOCUMENTOS ADD COLUMN PDOC_UUID TEXT');
-          await db.execute('ALTER TABLE PEDI_ITENS ADD COLUMN PDOC_UUID TEXT');
-        }
-        if (oldVersion < 14) {
-          await db.execute('ALTER TABLE ESTQ_PRODUTO_FOTO ADD COLUMN EPRO_FOTO_ENVIADA INTEGER DEFAULT 0');
-        }
-        if (oldVersion < 15) {
-          await db.execute('DROP TABLE IF EXISTS PEDI_DOCUMENTOS');
-          await db.execute('DROP TABLE IF EXISTS CADE_CONTATO');
-          await db.execute('''
-CREATE TABLE CADE_CONTATO (
-  CCOT_CNPJ TEXT PRIMARY KEY,
-  CCOT_NOME TEXT NOT NULL,
-  CCOT_FANTASIA TEXT,
-  CCOT_IE TEXT,
-  CCOT_END_CEP TEXT,
-  CCOT_END_NOME_LOGRADOURO TEXT,
-  CCOT_END_COMPLEMENTO TEXT,
-  CCOT_END_QUADRA TEXT,
-  CCOT_END_LOTE TEXT,
-  CCOT_END_NUMERO TEXT,
-  CCOT_END_BAIRRO TEXT,
-  CCOT_END_MUNICIPIO TEXT,
-  CCOT_END_CODIGO_IBGE TEXT,
-  CCOT_END_UF TEXT,
-  CCOT_END_LAT REAL,
-  CCOT_END_LON REAL,
-  CEMP_PK INTEGER,
-          CCOT_TP_PESSOA TEXT
-)''');
-          await db.execute('''
-CREATE TABLE PEDI_DOCUMENTOS (
-  PDOC_PK INTEGER PRIMARY KEY AUTOINCREMENT,
-  PDOC_UUID TEXT,
-  CEMP_PK INTEGER NOT NULL,
-  PDOC_DT_EMISSAO TEXT,
-  PDOC_VLR_TOTAL REAL,
-  CCOT_CNPJ TEXT,
-  CCOT_VEND_PK INTEGER,
-  PDOC_ESTADO_PEDIDO TEXT,
-  FOREIGN KEY(CCOT_CNPJ) REFERENCES CADE_CONTATO(CCOT_CNPJ),
-  FOREIGN KEY(CEMP_PK) REFERENCES CADE_EMPRESA(CEMP_PK)
-)''');
-        }
+        await _dropTables(db);
+        await _createSchema(db, newVersion);
       },
     );
+  }
+
+  static Future<void> _createSchema(Database db, int version) async {
+    await db.execute('''
+CREATE TABLE cade_empresa (
+  cemp_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  cemp_nome_fantasia TEXT NOT NULL,
+  cemp_razao_social TEXT,
+  cemp_cnpj TEXT,
+  cemp_ie TEXT
+)''');
+    await db.execute('''
+CREATE TABLE cade_mesa (
+  cmes_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  cemp_pk INTEGER NOT NULL,
+  cmes_numero INTEGER NOT NULL,
+  cmes_status TEXT NOT NULL,
+  cmes_descricao TEXT,
+  FOREIGN KEY(cemp_pk) REFERENCES cade_empresa(cemp_pk) ON DELETE CASCADE
+)''');
+    await db.execute('''
+CREATE TABLE estq_grupo (
+  egru_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  cemp_pk INTEGER NOT NULL,
+  egru_descricao TEXT NOT NULL,
+  FOREIGN KEY(cemp_pk) REFERENCES cade_empresa(cemp_pk) ON DELETE CASCADE
+)''');
+    await db.execute('''
+CREATE TABLE estq_produto (
+  epro_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  cemp_pk INTEGER NOT NULL,
+  egru_pk INTEGER NOT NULL,
+  epro_descricao TEXT NOT NULL,
+  epro_vlr_varejo REAL NOT NULL,
+  epro_ativo INTEGER DEFAULT 1,
+  FOREIGN KEY(cemp_pk) REFERENCES cade_empresa(cemp_pk) ON DELETE CASCADE,
+  FOREIGN KEY(egru_pk) REFERENCES estq_grupo(egru_pk) ON DELETE CASCADE
+)''');
+    await db.execute('''
+CREATE TABLE cade_usuario (
+  cusu_pk INTEGER,
+  cemp_pk INTEGER NOT NULL,
+  ccot_vend_pk INTEGER,
+  cusu_usuario TEXT NOT NULL,
+  cusu_senha TEXT,
+  PRIMARY KEY (cusu_pk, cemp_pk),
+  FOREIGN KEY(cemp_pk) REFERENCES cade_empresa(cemp_pk) ON DELETE CASCADE
+)''');
+    await db.execute('''
+CREATE TABLE pedi_documentos (
+  pdoc_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  cemp_pk INTEGER NOT NULL,
+  cmes_pk INTEGER,
+  pdoc_dt_emissao TEXT NOT NULL,
+  pdoc_dt_conclusao TEXT,
+  pdoc_status TEXT NOT NULL,
+  cusu_pk INTEGER,
+  FOREIGN KEY(cemp_pk) REFERENCES cade_empresa(cemp_pk) ON DELETE CASCADE,
+  FOREIGN KEY(cmes_pk) REFERENCES cade_mesa(cmes_pk) ON DELETE SET NULL,
+  FOREIGN KEY(cusu_pk, cemp_pk) REFERENCES cade_usuario(cusu_pk, cemp_pk) ON DELETE SET NULL
+)''');
+    await db.execute('''
+CREATE TABLE pedi_itens (
+  piten_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  pdoc_pk INTEGER NOT NULL,
+  epro_pk INTEGER NOT NULL,
+  piten_qtd INTEGER NOT NULL,
+  piten_obs TEXT,
+  piten_status TEXT,
+  piten_dt_enviado TEXT,
+  FOREIGN KEY(pdoc_pk) REFERENCES pedi_documentos(pdoc_pk) ON DELETE CASCADE,
+  FOREIGN KEY(epro_pk) REFERENCES estq_produto(epro_pk) ON DELETE CASCADE
+)''');
+    await db.execute('''
+CREATE TABLE cade_pagamento (
+  cpag_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  cemp_pk INTEGER NOT NULL,
+  cpag_descricao TEXT NOT NULL,
+  FOREIGN KEY(cemp_pk) REFERENCES cade_empresa(cemp_pk) ON DELETE CASCADE
+)''');
+    await db.execute('''
+CREATE TABLE flux_documentos_pagamentos (
+  fdpa_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+  cemp_pk INTEGER NOT NULL,
+  cpag_pk INTEGER NOT NULL,
+  pdoc_pk INTEGER NOT NULL,
+  fdpa_valor REAL NOT NULL,
+  pago_em TEXT,
+  FOREIGN KEY(cemp_pk) REFERENCES cade_empresa(cemp_pk) ON DELETE CASCADE,
+  FOREIGN KEY(cpag_pk) REFERENCES cade_pagamento(cpag_pk) ON DELETE SET NULL,
+  FOREIGN KEY(pdoc_pk) REFERENCES pedi_documentos(pdoc_pk) ON DELETE CASCADE
+)''');
+  }
+
+  static Future<void> _dropTables(Database db) async {
+    await db.execute('DROP TABLE IF EXISTS flux_documentos_pagamentos');
+    await db.execute('DROP TABLE IF EXISTS cade_pagamento');
+    await db.execute('DROP TABLE IF EXISTS pedi_itens');
+    await db.execute('DROP TABLE IF EXISTS pedi_documentos');
+    await db.execute('DROP TABLE IF EXISTS cade_usuario');
+    await db.execute('DROP TABLE IF EXISTS estq_produto');
+    await db.execute('DROP TABLE IF EXISTS estq_grupo');
+    await db.execute('DROP TABLE IF EXISTS cade_mesa');
+    await db.execute('DROP TABLE IF EXISTS cade_empresa');
   }
 }
