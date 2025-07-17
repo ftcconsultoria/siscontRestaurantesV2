@@ -156,7 +156,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
       messenger.showSnackBar(
           SnackBar(content: Text('Backup exportado em $backupPath')));
       await Share.shareXFiles([XFile(backupPath)],
-          text: 'ERP Mobile - backup do banco de dados');
+          text: 'SISCONT Restaurantes - backup do banco de dados');
       await _logDao.insert(
           entidade: 'CONFIG',
           tipo: 'EXPORT_BACKUP',

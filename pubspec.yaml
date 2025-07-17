@@ -1,5 +1,5 @@
 name: SISCONT_Mobile
-description: Aplicativo SISCONT Mobile com Supabase
+description: Aplicativo SISCONT Restaurantes com Supabase
 version: 1.0.0+3
 
 environment:

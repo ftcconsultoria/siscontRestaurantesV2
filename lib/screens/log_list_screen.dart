@@ -65,7 +65,7 @@ class _LogListScreenState extends State<LogListScreen> {
       final path = p.join(dir.path, 'logs.csv');
       final file = File(path);
       await file.writeAsString(buffer.toString());
-      await Share.shareXFiles([XFile(path)], text: 'ERP Mobile - logs');
+      await Share.shareXFiles([XFile(path)], text: 'SISCONT Restaurantes - logs');
     } catch (e) {
       messenger
           .showSnackBar(SnackBar(content: Text('Erro ao exportar logs: $e')));
